@@ -1,0 +1,74 @@
+Running in FUNCTIONAL mode...
+Compiling...
+Executing...
+╔═══════════════════════════════════════════════════════╗
+║       CUDA Tutorial: First Kernel Examples           ║
+╚═══════════════════════════════════════════════════════╝
+
+📊 Device Information:
+   Name: Intel(R) Xeon(R) E-2286M  CPU @ 2.40GHz
+   Compute Capability: 7.0
+   Total Global Memory: 62.55 GB
+   Multiprocessors: 8
+   Max Threads per Block: 1024
+   Max Threads Dimensions: [1024, 1024, 1024]
+
+═══════════════════════════════════════════════════════
+Example 1: Hello from GPU
+═══════════════════════════════════════════════════════
+
+Launching 2 blocks with 4 threads each (8 total threads)
+
+Hello from thread 0 in block 0 (global thread 0)
+Hello from thread 1 in block 0 (global thread 0)
+Hello from thread 2 in block 0 (global thread 0)
+Hello from thread 3 in block 0 (global thread 0)
+Hello from thread 4 in block 0 (global thread 0)
+Hello from thread 5 in block 0 (global thread 0)
+Hello from thread 6 in block 0 (global thread 0)
+Hello from thread 7 in block 0 (global thread 0)
+
+═══════════════════════════════════════════════════════
+Example 2: Vector Addition
+═══════════════════════════════════════════════════════
+
+Vector size: 1048576 elements (4.00 MB)
+
+Step 1: Allocating host memory...
+Step 2: Initializing input data...
+Step 3: Allocating device memory...
+Step 4: Copying data to device...
+Step 5: Launching kernel with 4096 blocks of 256 threads...
+        Total threads: 1048576
+
+GPU: C[0] = 0.00 + 1.00 = 1.00
+GPU: C[1] = 0.71 + 0.29 = 1.00
+GPU: C[2] = 0.83 + 0.17 = 1.00
+GPU: C[3] = 0.02 + 0.98 = 1.00
+GPU: C[4] = 0.57 + 0.43 = 1.00
+GPU: C[5] = 0.92 + 0.08 = 1.00
+GPU: C[6] = 0.08 + 0.92 = 1.00
+GPU: C[7] = 0.43 + 0.57 = 1.00
+GPU: C[8] = 0.98 + 0.02 = 1.00
+GPU: C[9] = 0.17 + 0.83 = 1.00
+
+⏱️  Kernel execution time: 180.543 ms
+   Throughput: 0.06 GB/s
+
+Step 6: Copying results back to host...
+Step 7: Verifying results...
+✓ Results verified successfully!
+  Example: 0.00000 + 1.00000 = 1.00000
+  Example: 0.25641 + 0.74359 = 1.00000
+
+Step 8: Comparing with CPU version...
+   CPU time: 1.989 ms
+   GPU time: 180.543 ms
+   Speedup: 0.01x
+
+Step 9: Cleaning up...
+
+╔═══════════════════════════════════════════════════════╗
+║                Program completed successfully!        ║
+╚═══════════════════════════════════════════════════════╝
+Exit status: 0

@@ -13,9 +13,9 @@
 ┌──────────────────────────────────────────────────────────────────┐
 │               L1 DATA CACHE ARCHITECTURE                         │
 ├──────────────────────────────────────────────────────────────────┤
-│                                                                   │
+│                                                                  │
 │  Unified with Shared Memory (128 KB total Ampere)                │
-│                                                                   │
+│                                                                  │
 │  ┌────────────────────────────────────────────────────────┐      │
 │  │  CACHE ORGANIZATION:                                   │      │
 │  │  • Line size: 128 bytes                                │      │
@@ -23,55 +23,55 @@
 │  │  • Write policy: Write-back, write-allocate            │      │
 │  │  • Replacement: LRU (Least Recently Used)              │      │
 │  └────────────────────────────────────────────────────────┘      │
-│                                                                   │
-│  ADDRESS BREAKDOWN (128-byte line):                               │
+│                                                                  │
+│  ADDRESS BREAKDOWN (128-byte line):                              │
 │  ┌────────────────────────────────────────────────────────┐      │
-│  │                                                         │      │
+│  │                                                        │      │
 │  │  Virtual Address (64-bit):                             │      │
-│  │  ┌────────────┬─────────────┬──────────┬──────────┐   │      │
-│  │  │    Tag     │  Set Index  │  Offset  │  Byte    │   │      │
-│  │  │  (bits)    │   (bits)    │ (4 bits) │ (3 bits) │   │      │
-│  │  └────────────┴─────────────┴──────────┴──────────┘   │      │
+│  │  ┌────────────┬─────────────┬──────────┬──────────┐    │      │
+│  │  │    Tag     │  Set Index  │  Offset  │  Byte    │    │      │
+│  │  │  (bits)    │   (bits)    │ (4 bits) │ (3 bits) │    │      │
+│  │  └────────────┴─────────────┴──────────┴──────────┘    │      │
 │  │       │             │             │           │        │      │
 │  │       │             │             │           └─> Within 8-byte word
 │  │       │             │             └─> Within cache line (16 words)
 │  │       │             └─> Selects cache set
 │  │       └─> Compared for hit/miss                        │      │
 │  └────────────────────────────────────────────────────────┘      │
-│                                                                   │
-│  4-WAY SET-ASSOCIATIVE STRUCTURE:                                 │
+│                                                                  │
+│  4-WAY SET-ASSOCIATIVE STRUCTURE:                                │
 │  ┌────────────────────────────────────────────────────────┐      │
-│  │  Set 0:  [Way 0][Way 1][Way 2][Way 3]                 │      │
-│  │  Set 1:  [Way 0][Way 1][Way 2][Way 3]                 │      │
-│  │  Set 2:  [Way 0][Way 1][Way 2][Way 3]                 │      │
-│  │  ...                                                    │      │
-│  │  Set N:  [Way 0][Way 1][Way 2][Way 3]                 │      │
-│  │                                                         │      │
-│  │  Each Way:                                              │      │
-│  │  ┌──────────────────────────────────────────────┐     │      │
-│  │  │ Valid │ Dirty │ Tag │ Data (128 bytes)     │     │      │
-│  │  │  (1b) │  (1b) │(...)│                       │     │      │
-│  │  └──────────────────────────────────────────────┘     │      │
-│  │                                                         │      │
-│  │  Lookup Process:                                        │      │
+│  │  Set 0:  [Way 0][Way 1][Way 2][Way 3]                  │      │
+│  │  Set 1:  [Way 0][Way 1][Way 2][Way 3]                  │      │
+│  │  Set 2:  [Way 0][Way 1][Way 2][Way 3]                  │      │
+│  │  ...                                                   │      │
+│  │  Set N:  [Way 0][Way 1][Way 2][Way 3]                  │      │
+│  │                                                        │      │
+│  │  Each Way:                                             │      │
+│  │  ┌──────────────────────────────────────────────┐      │      │
+│  │  │ Valid │ Dirty │ Tag │ Data (128 bytes)       │      │      │
+│  │  │  (1b) │  (1b) │(...)│                        │      │      │
+│  │  └──────────────────────────────────────────────┘      │      │
+│  │                                                        │      │
+│  │  Lookup Process:                                       │      │
 │  │  1. Extract set index from address                     │      │
 │  │  2. Check all 4 ways in parallel                       │      │
-│  │  3. Compare tags                                        │      │
+│  │  3. Compare tags                                       │      │
 │  │  4. Hit: Return data from matching way                 │      │
 │  │  5. Miss: Evict LRU way, fetch from L2                 │      │
 │  └────────────────────────────────────────────────────────┘      │
-│                                                                   │
-│  CACHE COHERENCE:                                                 │
+│                                                                  │
+│  CACHE COHERENCE:                                                │
 │  ┌────────────────────────────────────────────────────────┐      │
 │  │  L1 caches are NOT coherent across SMs!                │      │
-│  │                                                         │      │
-│  │  Implications:                                          │      │
+│  │                                                        │      │
+│  │  Implications:                                         │      │
 │  │  • Reads may see stale data from other SMs             │      │
 │  │  • Must use __threadfence_system() for coherence       │      │
 │  │  • Atomics bypass L1 (go to L2)                        │      │
 │  │  • L2 maintains coherence                              │      │
-│  │                                                         │      │
-│  │  Cache Control:                                         │      │
+│  │                                                        │      │
+│  │  Cache Control:                                        │      │
 │  │  • Loads: Cached by default                            │      │
 │  │  • Stores: Write-through to L2                         │      │
 │  │  • Can use caching modifiers:                          │      │
@@ -79,15 +79,15 @@
 │  │    - ld.cg  (cache at L2 only)                         │      │
 │  │    - ld.cs  (streaming, bypass cache)                  │      │
 │  └────────────────────────────────────────────────────────┘      │
-│                                                                   │
-│  PERFORMANCE CHARACTERISTICS:                                     │
+│                                                                  │
+│  PERFORMANCE CHARACTERISTICS:                                    │
 │  ┌────────────────────────────────────────────────────────┐      │
 │  │  Hit Latency:     ~30 cycles                           │      │
 │  │  Miss Penalty:    ~170 cycles (L2 access)              │      │
 │  │  Bandwidth:       128 bytes/cycle per SM               │      │
 │  │  Typical Hit Rate: 70-95% (workload dependent)         │      │
 │  └────────────────────────────────────────────────────────┘      │
-│                                                                   │
+│                                                                  │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -97,120 +97,120 @@
 ┌──────────────────────────────────────────────────────────────────────┐
 │                    L2 CACHE ARCHITECTURE                             │
 ├──────────────────────────────────────────────────────────────────────┤
-│                                                                       │
+│                                                                      │
 │  Chip-wide unified cache (6 MB on Ampere GA102)                      │
-│                                                                       │
-│  PARTITIONED STRUCTURE:                                               │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │  L2 Cache Slices (matched to memory controllers):            │   │
-│  │                                                               │   │
-│  │  ┌────────┬────────┬────────┬────────┬────────┬────────┐    │   │
-│  │  │Slice 0 │Slice 1 │Slice 2 │Slice 3 │Slice 4 │Slice 5 │    │   │
-│  │  │ 768KB  │ 768KB  │ 768KB  │ 768KB  │ 768KB  │ 768KB  │    │   │
-│  │  └───┬────┴───┬────┴───┬────┴───┬────┴───┬────┴───┬────┘    │   │
-│  │      │        │        │        │        │        │          │   │
-│  │     MC0      MC1      MC2      MC3      MC4      MC5         │   │
-│  │                                                               │   │
-│  │  Each slice connects to one memory controller                │   │
-│  │  Address interleaving for load balancing                     │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-│                                                                       │
-│  CACHE PARAMETERS:                                                    │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │  • Total Size: 6 MB (Ampere), 40 MB (Hopper)                │   │
-│  │  • Line Size: 128 bytes                                      │   │
-│  │  • Associativity: 16-way set associative                     │   │
-│  │  • Write Policy: Write-back                                  │   │
-│  │  • Replacement: Approximated LRU with sector promotion       │   │
-│  │  • ECC: Protected with SECDED (optional)                     │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-│                                                                       │
-│  ADDRESS MAPPING (Interleaved):                                       │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │                                                               │   │
-│  │  Physical Address:                                            │   │
-│  │  ┌─────────┬────────┬──────────┬──────────┬────────┐        │   │
-│  │  │   Tag   │  Set   │  Slice   │  Line    │ Byte   │        │   │
-│  │  │ (bits)  │ Index  │  Select  │  Offset  │ Offset │        │   │
-│  │  └─────────┴────────┴──────────┴──────────┴────────┘        │   │
-│  │      │         │         │           │         │             │   │
-│  │      │         │         │           │         └─> 0-7 (8B)  │   │
-│  │      │         │         │           └─> 0-15 (16 words)     │   │
-│  │      │         │         └─> Slice 0-5                       │   │
-│  │      │         └─> Set within slice                          │   │
-│  │      └─> Tag comparison                                      │   │
-│  │                                                               │   │
-│  │  Hash function distributes addresses across slices           │   │
-│  │  for uniform memory controller utilization                   │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-│                                                                       │
-│  PER-SLICE STRUCTURE (768 KB):                                        │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │                                                               │   │
-│  │  Number of Sets = 768KB / (128 bytes × 16 ways) = 384 sets  │   │
-│  │                                                               │   │
-│  │  16-Way Set Organization:                                     │   │
-│  │  ┌────────────────────────────────────────────────────┐     │   │
-│  │  │ Set 0:                                             │     │   │
-│  │  │ [W0][W1][W2][W3][W4][W5][W6][W7]....[W14][W15]   │     │   │
-│  │  │                                                    │     │   │
-│  │  │ Set 1:                                             │     │   │
-│  │  │ [W0][W1][W2][W3][W4][W5][W6][W7]....[W14][W15]   │     │   │
-│  │  │                                                    │     │   │
-│  │  │ ...                                                │     │   │
-│  │  │                                                    │     │   │
-│  │  │ Set 383:                                           │     │   │
-│  │  │ [W0][W1][W2][W3][W4][W5][W6][W7]....[W14][W15]   │     │   │
-│  │  └────────────────────────────────────────────────────┘     │   │
-│  │                                                               │   │
-│  │  Each Way Entry:                                              │   │
-│  │  ┌────────────────────────────────────────────────────┐     │   │
-│  │  │ [V][D][Tag][ECC][    Data: 128 bytes    ][ECC]   │     │   │
-│  │  │  1b 1b (Xb)  Xb   (16 × 8-byte words)     Xb     │     │   │
-│  │  └────────────────────────────────────────────────────┘     │   │
-│  │  V = Valid bit, D = Dirty bit                                │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-│                                                                       │
-│  ATOMIC OPERATIONS IN L2:                                             │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │  L2 cache handles all atomic operations:                     │   │
-│  │                                                               │   │
-│  │  ┌────────────────────────────────────────────────────┐     │   │
-│  │  │ 1. Atomic request arrives at L2                   │     │   │
-│  │  │ 2. Line locked (prevents other access)            │     │   │
-│  │  │ 3. Read-modify-write in L2                        │     │   │
-│  │  │ 4. Write back to memory (if needed)               │     │   │
-│  │  │ 5. Release lock                                    │     │   │
-│  │  └────────────────────────────────────────────────────┘     │   │
-│  │                                                               │   │
-│  │  Atomic Unit per L2 slice:                                   │   │
-│  │  • Handles atomicAdd, atomicCAS, etc.                        │   │
-│  │  • Serializes conflicting atomics                            │   │
-│  │  • Can process multiple non-conflicting atomics              │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-│                                                                       │
-│  CACHE RESIDENT FEATURE (Ampere):                                     │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │  Allows pinning data in L2:                                  │   │
-│  │                                                               │   │
-│  │  • Reserve portion of L2 for specific data                   │   │
-│  │  • Prevents eviction of critical data                        │   │
-│  │  • Useful for:                                               │   │
-│  │    - Frequently accessed lookup tables                       │   │
-│  │    - Kernel parameters                                       │   │
-│  │    - Shared data structures                                  │   │
-│  │                                                               │   │
-│  │  Usage: cudaMemAdvise() with cudaMemAdviseSetPreferredLocation
-│  └──────────────────────────────────────────────────────────────┘   │
-│                                                                       │
-│  PERFORMANCE:                                                         │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │  Hit Latency:        ~200 cycles                             │   │
-│  │  Miss Penalty:       ~200+ cycles (DRAM access)              │   │
-│  │  Bandwidth:          ~1500 GB/s (internal)                   │   │
-│  │  Typical Hit Rate:   60-80%                                  │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-│                                                                       │
+│                                                                      │
+│  PARTITIONED STRUCTURE:                                              │
+│  ┌──────────────────────────────────────────────────────────────┐    │
+│  │  L2 Cache Slices (matched to memory controllers):            │    │
+│  │                                                              │    │
+│  │  ┌────────┬────────┬────────┬────────┬────────┬────────┐     │    │
+│  │  │Slice 0 │Slice 1 │Slice 2 │Slice 3 │Slice 4 │Slice 5 │     │    │
+│  │  │ 768KB  │ 768KB  │ 768KB  │ 768KB  │ 768KB  │ 768KB  │     │    │
+│  │  └───┬────┴───┬────┴───┬────┴───┬────┴───┬────┴───┬────┘     │    │
+│  │      │        │        │        │        │        │          │    │
+│  │     MC0      MC1      MC2      MC3      MC4      MC5         │    │
+│  │                                                              │    │
+│  │  Each slice connects to one memory controller                │    │
+│  │  Address interleaving for load balancing                     │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+│                                                                      │
+│  CACHE PARAMETERS:                                                   │
+│  ┌──────────────────────────────────────────────────────────────┐    │
+│  │  • Total Size: 6 MB (Ampere), 40 MB (Hopper)                 │    │
+│  │  • Line Size: 128 bytes                                      │    │
+│  │  • Associativity: 16-way set associative                     │    │
+│  │  • Write Policy: Write-back                                  │    │
+│  │  • Replacement: Approximated LRU with sector promotion       │    │
+│  │  • ECC: Protected with SECDED (optional)                     │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+│                                                                      │
+│  ADDRESS MAPPING (Interleaved):                                      │
+│  ┌──────────────────────────────────────────────────────────────┐    │
+│  │                                                              │    │
+│  │  Physical Address:                                           │    │
+│  │  ┌─────────┬────────┬──────────┬──────────┬────────┐         │    │
+│  │  │   Tag   │  Set   │  Slice   │  Line    │ Byte   │         │    │
+│  │  │ (bits)  │ Index  │  Select  │  Offset  │ Offset │         │    │
+│  │  └─────────┴────────┴──────────┴──────────┴────────┘         │    │
+│  │      │         │         │           │         │             │    │
+│  │      │         │         │           │         └─> 0-7 (8B)  │    │
+│  │      │         │         │           └─> 0-15 (16 words)     │    │
+│  │      │         │         └─> Slice 0-5                       │    │
+│  │      │         └─> Set within slice                          │    │
+│  │      └─> Tag comparison                                      │    │
+│  │                                                              │    │
+│  │  Hash function distributes addresses across slices           │    │
+│  │  for uniform memory controller utilization                   │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+│                                                                      │
+│  PER-SLICE STRUCTURE (768 KB):                                       │
+│  ┌──────────────────────────────────────────────────────────────┐    │
+│  │                                                              │    │
+│  │  Number of Sets = 768KB / (128 bytes × 16 ways) = 384 sets   │    │
+│  │                                                              │    │
+│  │  16-Way Set Organization:                                    │    │
+│  │  ┌────────────────────────────────────────────────────┐      │    │
+│  │  │ Set 0:                                             │      │    │
+│  │  │ [W0][W1][W2][W3][W4][W5][W6][W7]....[W14][W15]     │      │    │
+│  │  │                                                    │      │    │
+│  │  │ Set 1:                                             │      │    │
+│  │  │ [W0][W1][W2][W3][W4][W5][W6][W7]....[W14][W15]     │      │    │
+│  │  │                                                    │      │    │
+│  │  │ ...                                                │      │    │
+│  │  │                                                    │      │    │
+│  │  │ Set 383:                                           │      │    │
+│  │  │ [W0][W1][W2][W3][W4][W5][W6][W7]....[W14][W15]     │      │    │
+│  │  └────────────────────────────────────────────────────┘      │    │
+│  │                                                              │    │
+│  │  Each Way Entry:                                             │    │
+│  │  ┌────────────────────────────────────────────────────┐      │    │
+│  │  │ [V][D][Tag][ECC][    Data: 128 bytes    ][ECC]     │      │    │
+│  │  │  1b 1b (Xb)  Xb   (16 × 8-byte words)     Xb       │      │    │
+│  │  └────────────────────────────────────────────────────┘      │    │
+│  │  V = Valid bit, D = Dirty bit                                │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+│                                                                      │
+│  ATOMIC OPERATIONS IN L2:                                            │
+│  ┌──────────────────────────────────────────────────────────────┐    │
+│  │  L2 cache handles all atomic operations:                     │    │
+│  │                                                              │    │
+│  │  ┌────────────────────────────────────────────────────┐      │    │
+│  │  │ 1. Atomic request arrives at L2                    │      │    │
+│  │  │ 2. Line locked (prevents other access)             │      │    │
+│  │  │ 3. Read-modify-write in L2                         │      │    │
+│  │  │ 4. Write back to memory (if needed)                │      │    │
+│  │  │ 5. Release lock                                    │      │    │
+│  │  └────────────────────────────────────────────────────┘      │    │
+│  │                                                              │    │
+│  │  Atomic Unit per L2 slice:                                   │    │
+│  │  • Handles atomicAdd, atomicCAS, etc.                        │    │
+│  │  • Serializes conflicting atomics                            │    │
+│  │  • Can process multiple non-conflicting atomics              │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+│                                                                      │
+│  CACHE RESIDENT FEATURE (Ampere):                                    │
+│  ┌──────────────────────────────────────────────────────────────┐    │
+│  │  Allows pinning data in L2:                                  │    │
+│  │                                                              │    │
+│  │  • Reserve portion of L2 for specific data                   │    │
+│  │  • Prevents eviction of critical data                        │    │
+│  │  • Useful for:                                               │    │
+│  │    - Frequently accessed lookup tables                       │    │
+│  │    - Kernel parameters                                       │    │
+│  │    - Shared data structures                                  │    │
+│  │                                                              │    │
+│  │ Usage: cudaMemAdvise() with cudaMemAdviseSetPreferredLocation│    │
+│  └──────────────────────────────────────────────────────────────┘    │
+│                                                                      │
+│  PERFORMANCE:                                                        │
+│  ┌──────────────────────────────────────────────────────────────┐    │
+│  │  Hit Latency:        ~200 cycles                             │    │
+│  │  Miss Penalty:       ~200+ cycles (DRAM access)              │    │
+│  │  Bandwidth:          ~1500 GB/s (internal)                   │    │
+│  │  Typical Hit Rate:   60-80%                                  │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+│                                                                      │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 

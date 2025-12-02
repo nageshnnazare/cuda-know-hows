@@ -316,16 +316,16 @@ make run
 ```
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║          🏆 TUTORIAL 100% COMPLETE! 🏆                      ║
+║          🏆 TUTORIAL 100% COMPLETE! 🏆                        ║
 ║                                                              ║
-║  ✅ All 22 Tutorial Files Created                           ║
-║  ✅ All Documentation Complete                              ║
-║  ✅ Build System Updated                                    ║
-║  ✅ Everything Tested                                       ║
-║  ✅ Ready to Use!                                           ║
+║  ✅ All 22 Tutorial Files Created                            ║
+║  ✅ All Documentation Complete                               ║
+║  ✅ Build System Updated                                     ║
+║  ✅ Everything Tested                                        ║
+║  ✅ Ready to Use!                                            ║
 ║                                                              ║
-║  You now have one of the most comprehensive                 ║
-║  CUDA tutorials available!                                  ║
+║  You now have one of the most comprehensive                  ║
+║  CUDA tutorials available!                                   ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 ```

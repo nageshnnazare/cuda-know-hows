@@ -45,7 +45,7 @@
  *
  * Memory Access Visualization:
  * 
- *     Fast ↑                          Small ↑
+ *     Fast ↑                         Small ↑
  *          │                               │
  *    [Registers]──────────────────────[Registers]
  *          │                               │
@@ -103,7 +103,7 @@ __global__ void constantMemoryAccess(float *input, float *output, int n) {
  *
  * COALESCED ACCESS (Good):
  * ┌────────────────────────────────────────────────────┐
- * │ Warp (32 threads)                                   │
+ * │ Warp (32 threads)                                  │
  * ├────────────────────────────────────────────────────┤
  * │ T0  T1  T2  T3  ... T29 T30 T31                    │
  * │  ↓   ↓   ↓   ↓       ↓   ↓   ↓                     │
@@ -113,12 +113,12 @@ __global__ void constantMemoryAccess(float *input, float *output, int n) {
  *
  * STRIDED ACCESS (Bad):
  * ┌────────────────────────────────────────────────────┐
- * │ Warp (32 threads)                                   │
+ * │ Warp (32 threads)                                  │
  * ├────────────────────────────────────────────────────┤
  * │ T0  T1  T2  T3  ... T29 T30 T31                    │
  * │  ↓   ↓   ↓   ↓       ↓   ↓   ↓                     │
  * │ [0] [2] [4] [6] ... [58][60][62]  Memory           │
- * │  └→  └→  └→  └→      └→  └→  └→ 32 Transactions   │
+ * │  └→  └→  └→  └→      └→  └→  └→ 32 Transactions    │
  * └────────────────────────────────────────────────────┘
  */
 
@@ -193,7 +193,7 @@ __global__ void alignedVsUnaligned(float *aligned, float *unaligned,
  * │ Threads: T0  T1  T2  T3  T4  T5  T6  T7  │
  * │           ↓   ↓   ↓   ↓   ↓   ↓   ↓   ↓  │
  * │ Banks:   B0  B1  B2  B3  B4  B5  B6  B7  │
- * │ Access: [0] [1] [2] [3] [4] [5] [6] [7] │
+ * │ Access: [0] [1] [2] [3] [4] [5] [6] [7]  │
  * └──────────────────────────────────────────┘
  * Result: All accesses in parallel (fast)
  *
@@ -202,7 +202,7 @@ __global__ void alignedVsUnaligned(float *aligned, float *unaligned,
  * │ Threads: T0  T1  T2  T3  T4  T5  T6  T7  │
  * │           ↓   ↓   ↓   ↓   ↓   ↓   ↓   ↓  │
  * │ Banks:   B0  B0  B1  B1  B2  B2  B3  B3  │
- * │ Access: [0] [8] [1] [9] [2][10] [3][11] │
+ * │ Access: [0] [8] [1] [9] [2][10] [3][11]  │
  * └──────────────────────────────────────────┘
  * Result: 2 serialized accesses (2x slower)
  */

@@ -38,44 +38,44 @@
 │  │ │Cache │ │  │ │Cache │ │  │ │Cache │ │  │ │Cache │ │             │
 │  │ └──────┘ │  │ └──────┘ │  │ └──────┘ │  │ └──────┘ │             │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘             │
-│                                                                       │
-│                    ┌─────────────────────┐                           │
-│                    │   Shared L3 Cache   │                           │
-│                    └─────────────────────┘                           │
-│                                                                       │
-│  Features: Few cores, Complex control logic, Large caches            │
-│  Best for: Sequential processing, Complex branching                  │
+│                                                                     │
+│                    ┌─────────────────────┐                          │
+│                    │   Shared L3 Cache   │                          │
+│                    └─────────────────────┘                          │
+│                                                                     │
+│  Features: Few cores, Complex control logic, Large caches           │
+│  Best for: Sequential processing, Complex branching                 │
 └─────────────────────────────────────────────────────────────────────┘
 
 
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         GPU ARCHITECTURE                             │
+│                         GPU ARCHITECTURE                            │
 ├─────────────────────────────────────────────────────────────────────┤
-│                                                                       │
+│                                                                     │
 │  ┌────────┬────────┬────────┬────────┬────────┬────────┬────────┐   │
 │  │   SM   │   SM   │   SM   │   SM   │   SM   │   SM   │   SM   │   │
-│  │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐│   │
-│  ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C││   │
-│  │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤│   │
-│  ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C││   │
-│  │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘│   │
+│  │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │   │
+│  ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ │   │
+│  │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │   │
+│  ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ │   │
+│  │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │   │
 │  │ Shared │ Shared │ Shared │ Shared │ Shared │ Shared │ Shared │   │
 │  │  Mem   │  Mem   │  Mem   │  Mem   │  Mem   │  Mem   │  Mem   │   │
 │  └────────┴────────┴────────┴────────┴────────┴────────┴────────┘   │
 │  ┌────────┬────────┬────────┬────────┬────────┬────────┬────────┐   │
 │  │   SM   │   SM   │   SM   │   SM   │   SM   │   SM   │   SM   │   │
-│  │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐│   │
-│  ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C││   │
-│  │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤│   │
-│  ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C││   │
-│  │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘│   │
+│  │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │┌─┬─┬─┐ │   │
+│  ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ │   │
+│  │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │├─┼─┼─┤ │   │
+│  ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ ││C│C│C│ │   │
+│  │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │└─┴─┴─┘ │   │
 │  │ Shared │ Shared │ Shared │ Shared │ Shared │ Shared │ Shared │   │
 │  │  Mem   │  Mem   │  Mem   │  Mem   │  Mem   │  Mem   │  Mem   │   │
 │  └────────┴────────┴────────┴────────┴────────┴────────┴────────┘   │
-│                                                                       │
-│  SM = Streaming Multiprocessor,  C = CUDA Core                       │
-│  Features: Thousands of simple cores, Massive parallelism            │
-│  Best for: Data-parallel operations, Simple computations             │
+│                                                                     │
+│  SM = Streaming Multiprocessor,  C = CUDA Core                      │
+│  Features: Thousands of simple cores, Massive parallelism           │
+│  Best for: Data-parallel operations, Simple computations            │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -146,31 +146,31 @@ CUDA uses **SIMT** (Single Instruction, Multiple Threads):
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    CUDA THREAD HIERARCHY                     │
+│                    CUDA THREAD HIERARCHY                    │
 ├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│  Grid (All threads in a kernel launch)                       │
-│  ┌────────────────────────────────────────────────────┐      │
-│  │                                                     │      │
-│  │  Block (0,0)          Block (1,0)          Block (2,0)│   │
+│                                                             │
+│  Grid (All threads in a kernel launch)                      │
+│  ┌────────────────────────────────────────────────────┐     │
+│  │                                                    │     │
+│  │  Block (0,0)          Block (1,0)          Block (2,0)   │
 │  │  ┌─────────────┐      ┌─────────────┐      ┌──────────┐  │
 │  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T│  │
 │  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T│  │
 │  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T│  │
 │  │  └─────────────┘      └─────────────┘      └──────────┘  │
-│  │                                                     │      │
-│  │  Block (0,1)          Block (1,1)          Block (2,1)│   │
+│  │                                                          │
+│  │  Block (0,1)          Block (1,1)          Block (2,1)   │
 │  │  ┌─────────────┐      ┌─────────────┐      ┌──────────┐  │
 │  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T│  │
 │  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T│  │
 │  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T│  │
 │  │  └─────────────┘      └─────────────┘      └──────────┘  │
-│  │                                                     │      │
-│  └────────────────────────────────────────────────────┘      │
-│                                                               │
-│  T = Thread    Each thread has unique ID                     │
-│  Threads grouped into Blocks                                 │
-│  Blocks grouped into Grid                                    │
+│  │                                                    │     │
+│  └────────────────────────────────────────────────────┘     │
+│                                                             │
+│  T = Thread    Each thread has unique ID                    │
+│  Threads grouped into Blocks                                │
+│  Blocks grouped into Grid                                   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -195,47 +195,47 @@ CUDA uses **SIMT** (Single Instruction, Multiple Threads):
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                      CUDA MEMORY HIERARCHY                    │
+│                      CUDA MEMORY HIERARCHY                   │
 ├──────────────────────────────────────────────────────────────┤
-│                                                                │
-│  HOST (CPU)                                                    │
-│  ┌────────────────────────────────────────────┐               │
-│  │         Host Memory (RAM)                  │               │
-│  │         - Pageable Memory                  │               │
-│  │         - Pinned Memory                    │               │
-│  └────────────────────────────────────────────┘               │
-│         ↕ ↕ ↕ (PCIe Transfer - Slow!)                         │
-│  ┌────────────────────────────────────────────┐               │
-│  │                                             │               │
-│  │  DEVICE (GPU)                               │               │
-│  │                                             │               │
-│  │  ┌──────────────────────────────────────┐  │               │
-│  │  │     Global Memory (Slow)             │  │               │
-│  │  │     - Large (GBs)                    │  │               │
-│  │  │     - Accessible by all threads      │  │               │
-│  │  │     - Persistent across kernels      │  │               │
-│  │  └──────────────────────────────────────┘  │               │
-│  │              ↕                               │               │
-│  │  ┌──────────────────────────────────────┐  │               │
-│  │  │     L2 Cache (Automatic)             │  │               │
-│  │  └──────────────────────────────────────┘  │               │
-│  │              ↕                               │               │
-│  │  ┌─────────────────┐  ┌─────────────────┐  │               │
-│  │  │   SM 0          │  │   SM 1          │  │               │
-│  │  │ ┌─────────────┐ │  │ ┌─────────────┐ │  │               │
-│  │  │ │L1/Shared Mem│ │  │ │L1/Shared Mem│ │  │               │
-│  │  │ │  (Fast)     │ │  │ │  (Fast)     │ │  │               │
-│  │  │ └─────────────┘ │  │ └─────────────┘ │  │               │
-│  │  │ ┌───┐┌───┐┌───┐ │  │ ┌───┐┌───┐┌───┐ │  │               │
-│  │  │ │Reg││Reg││Reg│ │  │ │Reg││Reg││Reg│ │  │               │
-│  │  │ └───┘└───┘└───┘ │  │ └───┘└───┘└───┘ │  │               │
-│  │  │  (Fastest)      │  │  (Fastest)      │  │               │
-│  │  └─────────────────┘  └─────────────────┘  │               │
-│  │                                             │               │
-│  └─────────────────────────────────────────────┘               │
-│                                                                │
-│  Speed:  Registers > Shared > L2 > Global > Host              │
-│  Size:   Registers < Shared < L2 < Global < Host              │
+│                                                              │
+│  HOST (CPU)                                                  │
+│  ┌────────────────────────────────────────────┐              │
+│  │         Host Memory (RAM)                  │              │
+│  │         - Pageable Memory                  │              │
+│  │         - Pinned Memory                    │              │
+│  └────────────────────────────────────────────┘              │
+│         ↕ ↕ ↕ (PCIe Transfer - Slow!)                        │
+│  ┌────────────────────────────────────────────┐              │
+│  │                                            │              │
+│  │  DEVICE (GPU)                              │              │
+│  │                                            │              │
+│  │  ┌──────────────────────────────────────┐  │              │
+│  │  │     Global Memory (Slow)             │  │              │
+│  │  │     - Large (GBs)                    │  │              │
+│  │  │     - Accessible by all threads      │  │              │
+│  │  │     - Persistent across kernels      │  │              │
+│  │  └──────────────────────────────────────┘  │              │
+│  │              ↕                             │              │
+│  │  ┌──────────────────────────────────────┐  │              │
+│  │  │     L2 Cache (Automatic)             │  │              │
+│  │  └──────────────────────────────────────┘  │              │
+│  │              ↕                             │              │
+│  │  ┌─────────────────┐  ┌─────────────────┐  │              │
+│  │  │   SM 0          │  │   SM 1          │  │              │
+│  │  │ ┌─────────────┐ │  │ ┌─────────────┐ │  │              │
+│  │  │ │L1/Shared Mem│ │  │ │L1/Shared Mem│ │  │              │
+│  │  │ │  (Fast)     │ │  │ │  (Fast)     │ │  │              │
+│  │  │ └─────────────┘ │  │ └─────────────┘ │  │              │
+│  │  │ ┌───┐┌───┐┌───┐ │  │ ┌───┐┌───┐┌───┐ │  │              │
+│  │  │ │Reg││Reg││Reg│ │  │ │Reg││Reg││Reg│ │  │              │
+│  │  │ └───┘└───┘└───┘ │  │ └───┘└───┘└───┘ │  │              │
+│  │  │  (Fastest)      │  │  (Fastest)      │  │              │
+│  │  └─────────────────┘  └─────────────────┘  │              │
+│  │                                            │              │
+│  └────────────────────────────────────────────┘              │
+│                                                              │
+│  Speed:  Registers > Shared > L2 > Global > Host             │
+│  Size:   Registers < Shared < L2 < Global < Host             │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -285,23 +285,23 @@ nvidia-smi
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│              TYPICAL CUDA PROGRAM FLOW                    │
+│              TYPICAL CUDA PROGRAM FLOW                   │
 ├──────────────────────────────────────────────────────────┤
-│                                                            │
-│  1. Initialize data on HOST (CPU)                         │
-│     ↓                                                      │
-│  2. Allocate memory on DEVICE (GPU)                       │
-│     ↓                                                      │
-│  3. Transfer data: HOST → DEVICE                          │
-│     ↓                                                      │
-│  4. Launch KERNEL (GPU computation)                       │
-│     ↓                                                      │
-│  5. Transfer results: DEVICE → HOST                       │
-│     ↓                                                      │
-│  6. Free GPU memory                                       │
-│     ↓                                                      │
-│  7. Process results on HOST                               │
-│                                                            │
+│                                                          │
+│  1. Initialize data on HOST (CPU)                        │
+│     ↓                                                    │
+│  2. Allocate memory on DEVICE (GPU)                      │
+│     ↓                                                    │
+│  3. Transfer data: HOST → DEVICE                         │
+│     ↓                                                    │
+│  4. Launch KERNEL (GPU computation)                      │
+│     ↓                                                    │
+│  5. Transfer results: DEVICE → HOST                      │
+│     ↓                                                    │
+│  6. Free GPU memory                                      │
+│     ↓                                                    │
+│  7. Process results on HOST                              │
+│                                                          │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -387,26 +387,26 @@ In the next tutorial, we'll write our first CUDA kernel and understand:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    CUDA QUICK REFERENCE                      │
+│                    CUDA QUICK REFERENCE                     │
 ├─────────────────────────────────────────────────────────────┤
-│ Built-in Variables:                                          │
+│ Built-in Variables:                                         │
 │   threadIdx.x/y/z    - Thread index within block            │
 │   blockIdx.x/y/z     - Block index within grid              │
 │   blockDim.x/y/z     - Block dimensions (threads per block) │
 │   gridDim.x/y/z      - Grid dimensions (blocks per grid)    │
-│                                                              │
-│ Global Thread ID (1D):                                       │
+│                                                             │
+│ Global Thread ID (1D):                                      │
 │   int tid = blockIdx.x * blockDim.x + threadIdx.x;          │
-│                                                              │
-│ Kernel Launch:                                               │
+│                                                             │
+│ Kernel Launch:                                              │
 │   kernel<<<gridSize, blockSize>>>(args);                    │
-│                                                              │
-│ Memory Transfer Directions:                                  │
+│                                                             │
+│ Memory Transfer Directions:                                 │
 │   cudaMemcpyHostToDevice    - CPU → GPU                     │
 │   cudaMemcpyDeviceToHost    - GPU → CPU                     │
 │   cudaMemcpyDeviceToDevice  - GPU → GPU                     │
-│                                                              │
-│ Synchronization:                                             │
+│                                                             │
+│ Synchronization:                                            │
 │   cudaDeviceSynchronize()   - Wait for GPU                  │
 │   __syncthreads()           - Wait within block (device)    │
 └─────────────────────────────────────────────────────────────┘

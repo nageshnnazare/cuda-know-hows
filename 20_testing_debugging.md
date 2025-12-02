@@ -23,16 +23,16 @@
 ```
 ╔════════════════════════════════════════════════════════╗
 ║                                                        ║
-║              ┌──────────────────┐                     ║
-║              │  Integration     │  ← Few, slow        ║
-║              │  Tests           │                     ║
-║         ┌────┴──────────────────┴────┐               ║
-║         │  Kernel Tests               │  ← Some      ║
-║         │  (GPU specific)             │               ║
-║    ┌────┴─────────────────────────────┴────┐         ║
-║    │  Unit Tests                            │  ← Many║
-║    │  (Host code, utilities)                │         ║
-║    └────────────────────────────────────────┘         ║
+║              ┌──────────────────┐                      ║
+║              │  Integration     │  ← Few, slow         ║
+║              │  Tests           │                      ║
+║         ┌────┴──────────────────┴────┐                 ║
+║         │  Kernel Tests               │  ← Some        ║
+║         │  (GPU specific)             │                ║
+║    ┌────┴─────────────────────────────┴────┐           ║
+║    │  Unit Tests                            │  ← Many. ║
+║    │  (Host code, utilities)                │          ║
+║    └────────────────────────────────────────┘          ║
 ║                                                        ║
 ╚════════════════════════════════════════════════════════╝
 ```
@@ -749,20 +749,20 @@ jobs:
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
 ║  Tools:                                                      ║
-║  ✓ cuda-memcheck    → Memory errors                         ║
-║  ✓ cuda-gdb         → Interactive debugging                 ║
-║  ✓ printf          → Simple debugging                       ║
-║  ✓ Nsight Systems   → System profiling                      ║
-║  ✓ Nsight Compute   → Kernel profiling                      ║
+║  ✓ cuda-memcheck    → Memory errors                          ║
+║  ✓ cuda-gdb         → Interactive debugging                  ║
+║  ✓ printf          → Simple debugging                        ║
+║  ✓ Nsight Systems   → System profiling                       ║
+║  ✓ Nsight Compute   → Kernel profiling                       ║
 ║                                                              ║
 ║  Best Practices:                                             ║
-║  ✓ Write unit tests                                         ║
-║  ✓ Test edge cases                                          ║
-║  ✓ Compare vs CPU                                           ║
-║  ✓ Check for errors after every CUDA call                   ║
-║  ✓ Use proper tolerances for float comparison               ║
-║  ✓ Profile before optimizing                                ║
-║  ✓ Automate regression testing                              ║
+║  ✓ Write unit tests                                          ║
+║  ✓ Test edge cases                                           ║
+║  ✓ Compare vs CPU                                            ║
+║  ✓ Check for errors after every CUDA call                    ║
+║  ✓ Use proper tolerances for float comparison                ║
+║  ✓ Profile before optimizing                                 ║
+║  ✓ Automate regression testing                               ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 ```

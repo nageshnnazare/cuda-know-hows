@@ -344,7 +344,7 @@ make run
 ║ Parallel Reduction     12.5 ms   → 0.06 ms       208x  ║
 ║ Histogram              15 ms     → 0.5 ms        30x   ║
 ║ Atomic Ops (lock-free) 850 ms    → 0.3 ms        2833x ║
-║ N-Body (1M particles)  N/A       → <10 ms        ⚡    ║
+║ N-Body (1M particles)  N/A       → <10 ms        ⚡     ║
 ║ Monte Carlo (100M)     N/A       → 4 ms          🚀    ║
 ╚════════════════════════════════════════════════════════╝
 ```

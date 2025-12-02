@@ -389,10 +389,10 @@ __global__ void addBiasReLU(float *x, float *b, float *y,
  * ────────────────────────
  *
  *   Input Image          Conv Layer         Pooling          FC Layer
- *   ┌────────┐          ┌────────┐        ┌──────┐        ┌────┐
- *   │28×28×1 │  →       │28×28×32│   →    │14×14×32│  →   │ 10 │
- *   │        │ Conv+ReLU│        │ MaxPool│        │Flatten│    │
- *   └────────┘          └────────┘        └──────┘  →FC   └────┘
+ *   ┌────────┐          ┌────────┐        ┌────────┐        ┌────┐
+ *   │28×28×1 │  →       │28×28×32│   →    │14×14×32│  →     │ 10 │
+ *   │        │ Conv+ReLU│        │ MaxPool│        │Flatten │    │
+ *   └────────┘          └────────┘        └────────┘  →FC   └────┘
  *                        ↓ (3×3 filters)    (2×2)          Softmax
  *                    Extract features    Downsample      Classes
  *
@@ -402,8 +402,8 @@ __global__ void addBiasReLU(float *x, float *b, float *y,
  *
  * Input:        Filter:      Output:
  * ┌─────────┐   ┌───────┐   ┌─────────┐
- * │ 1 2 3 4 │   │ 1  0 │   │  ?  ?  ?│
- * │ 5 6 7 8 │ * │ 0 -1 │ = │  ?  ?  ?│
+ * │ 1 2 3 4 │   │ 1  0  │   │  ?  ?  ?│
+ * │ 5 6 7 8 │ * │ 0 -1  │ = │  ?  ?  ?│
  * │ 9 0 1 2 │   └───────┘   └─────────┘
  * └─────────┘
  *
@@ -415,13 +415,13 @@ __global__ void addBiasReLU(float *x, float *b, float *y,
  * Reduces spatial dimensions by taking maximum in each region.
  *
  * Input (4×4):       Max Pool (2×2):     Output (2×2):
- * ┌──────────────┐                       ┌──────┐
- * │ 1  3│ 2  4 │                        │ 6│ 8 │
+ * ┌────────────┐                       ┌──────┐
+ * │ 1  3│ 2  4 │                       │ 6│ 8 │
  * │ 5  6│ 7  8 │    →   [6]  [8]    →  ├──┼───┤
- * ├─────┼──────┤        [9] [12]        │ 9│12 │
- * │ 2  9│ 1 12 │                        └──────┘
+ * ├─────┼──────┤        [9] [12]       │ 9│12 │
+ * │ 2  9│ 1 12 │                       └──────┘
  * │ 0  1│ 3  4 │
- * └──────────────┘
+ * └────────────┘
  *
  * Complete CNN Data Flow:
  * ──────────────────────

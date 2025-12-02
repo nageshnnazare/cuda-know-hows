@@ -22,36 +22,36 @@ Profiling and debugging are essential skills for CUDA development. This guide co
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    DEVELOPMENT WORKFLOW                      │
+│                    DEVELOPMENT WORKFLOW                     │
 ├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│  1. DEVELOPMENT                                               │
-│     ┌──────────────┐                                         │
-│     │ Write Code   │                                         │
-│     └──────┬───────┘                                         │
-│            │                                                  │
-│  2. ERROR CHECKING                                            │
-│     ┌──────▼───────┐                                         │
-│     │ CUDA_CHECK() │  Runtime error detection                │
-│     │ assert()     │  Device-side assertions                 │
-│     └──────┬───────┘                                         │
-│            │                                                  │
-│  3. MEMORY DEBUGGING                                          │
-│     ┌──────▼────────┐                                        │
-│     │ cuda-memcheck │  Memory errors, race conditions        │
-│     └──────┬────────┘                                        │
-│            │                                                  │
-│  4. FUNCTIONAL DEBUGGING                                      │
-│     ┌──────▼───────┐                                         │
-│     │  cuda-gdb    │  Breakpoints, variable inspection       │
-│     └──────┬───────┘                                         │
-│            │                                                  │
-│  5. PERFORMANCE PROFILING                                     │
+│                                                             │
+│  1. DEVELOPMENT                                             │
+│     ┌──────────────┐                                        │
+│     │ Write Code   │                                        │
+│     └──────┬───────┘                                        │
+│            │                                                │
+│  2. ERROR CHECKING                                          │
+│     ┌──────▼───────┐                                        │
+│     │ CUDA_CHECK() │  Runtime error detection               │
+│     │ assert()     │  Device-side assertions                │
+│     └──────┬───────┘                                        │
+│            │                                                │
+│  3. MEMORY DEBUGGING                                        │
+│     ┌──────▼────────┐                                       │
+│     │ cuda-memcheck │  Memory errors, race conditions       │
+│     └──────┬────────┘                                       │
+│            │                                                │
+│  4. FUNCTIONAL DEBUGGING                                    │
+│     ┌──────▼───────┐                                        │
+│     │  cuda-gdb    │  Breakpoints, variable inspection      │
+│     └──────┬───────┘                                        │
+│            │                                                │
+│  5. PERFORMANCE PROFILING                                   │
 │     ┌──────▼──────────┐    ┌──────────────────┐             │
 │     │ Nsight Systems  │    │ Nsight Compute   │             │
 │     │ (Timeline view) │    │ (Kernel details) │             │
 │     └─────────────────┘    └──────────────────┘             │
-│                                                               │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -153,25 +153,25 @@ __global__ void kernelWithAssert(float *data, int n) {
 ┌────────────────────────────────────────────────────────────┐
 │              CUDA-MEMCHECK TOOL SUITE                      │
 ├────────────────────────────────────────────────────────────┤
-│                                                             │
+│                                                            │
 │  1. MEMCHECK (default)                                     │
 │     • Out-of-bounds memory accesses                        │
 │     • Misaligned memory accesses                           │
 │     • Memory leaks                                         │
-│                                                             │
+│                                                            │
 │  2. RACECHECK                                              │
 │     • Shared memory race conditions                        │
 │     • Global memory race conditions                        │
 │     • Missing __syncthreads()                              │
-│                                                             │
+│                                                            │
 │  3. INITCHECK                                              │
 │     • Uninitialized device memory reads                    │
 │     • Uninitialized shared memory reads                    │
-│                                                             │
+│                                                            │
 │  4. SYNCCHECK                                              │
 │     • Invalid synchronization usage                        │
 │     • Deadlocks                                            │
-│                                                             │
+│                                                            │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -313,9 +313,9 @@ cuda-gdb ./program
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                   CUDA-GDB SPECIAL COMMANDS                   │
+│                   CUDA-GDB SPECIAL COMMANDS                  │
 ├──────────────────────────────────────────────────────────────┤
-│                                                               │
+│                                                              │
 │ info cuda devices          List all CUDA devices             │
 │ info cuda sms              List streaming multiprocessors    │
 │ info cuda warps            List warps                        │
@@ -323,7 +323,7 @@ cuda-gdb ./program
 │ info cuda kernels          List active kernels               │
 │ info cuda blocks           List blocks                       │
 │ info cuda threads          List threads                      │
-│                                                               │
+│                                                              │
 │ cuda device <n>            Switch to device n                │
 │ cuda sm <n>                Switch to SM n                    │
 │ cuda warp <n>              Switch to warp n                  │
@@ -331,10 +331,10 @@ cuda-gdb ./program
 │ cuda kernel <n>            Switch to kernel n                │
 │ cuda block <x,y,z>         Switch to block (x,y,z)           │
 │ cuda thread <x,y,z>        Switch to thread (x,y,z)          │
-│                                                               │
+│                                                              │
 │ cuda thread blockIdx       Show current block index          │
 │ cuda thread threadIdx      Show current thread index         │
-│                                                               │
+│                                                              │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -401,20 +401,20 @@ $5 = 2.5
 ┌────────────────────────────────────────────────────────────────┐
 │                 NSIGHT SYSTEMS TIMELINE VIEW                   │
 ├────────────────────────────────────────────────────────────────┤
-│                                                                 │
+│                                                                │
 │  CPU Thread 0: [████Main████]                                  │
-│                                                                 │
-│  CUDA Context:                                                  │
-│    Compute:    [═══Kernel1═══]  [═══Kernel2═══]  [═══K3═══]   │
+│                                                                │
+│  CUDA Context:                                                 │
+│    Compute:    [═══Kernel1═══]  [═══Kernel2═══]  [═══K3═══]    │
 │    MemcpyHtoD: [▓▓▓]            [▓▓▓]                          │
 │    MemcpyDtoH:          [▓▓▓]            [▓▓▓]                 │
-│                                                                 │
-│  GPU Utilization: ████████░░░░██████░░░░░░████                │
-│                                                                 │
-│  Memory Transfer: ▓▓▓░░░░░▓▓▓░░░░░░░░▓▓▓                      │
-│                                                                 │
+│                                                                │
+│  GPU Utilization: ████████░░░░██████░░░░░░████                 │
+│                                                                │
+│  Memory Transfer: ▓▓▓░░░░░▓▓▓░░░░░░░░▓▓▓                       │
+│                                                                │
 ├────────────────────────────────────────────────────────────────┤
-│  Key Insights:                                                  │
+│  Key Insights:                                                 │
 │  • Overlapping of kernels and transfers                        │
 │  • Idle time (optimization opportunities)                      │
 │  • CPU-GPU synchronization points                              │
@@ -528,24 +528,24 @@ nvtxRangePop();
 ┌────────────────────────────────────────────────────────────────┐
 │              NSIGHT COMPUTE KERNEL ANALYSIS                    │
 ├────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  PERFORMANCE METRICS:                                           │
+│                                                                │
+│  PERFORMANCE METRICS:                                          │
 │  ┌──────────────────────────────────────────────────────┐      │
 │  │ Compute (SM) Throughput:         78% ████████████░░  │      │
 │  │ Memory Throughput:               92% ████████████░   │      │
 │  │ Achieved Occupancy:              45% ████████░░░░░░  │      │
 │  └──────────────────────────────────────────────────────┘      │
-│                                                                 │
-│  LIMITERS:                                                      │
-│  • Memory bandwidth (primary bottleneck)                        │
+│                                                                │
+│  LIMITERS:                                                     │
+│  • Memory bandwidth (primary bottleneck)                       │
 │  • Uncoalesced global memory accesses                          │
 │  • Low warp occupancy                                          │
-│                                                                 │
-│  RECOMMENDATIONS:                                               │
-│  ✓ Use shared memory to reduce global accesses                │
+│                                                                │
+│  RECOMMENDATIONS:                                              │
+│  ✓ Use shared memory to reduce global accesses                 │
 │  ✓ Improve memory coalescing                                   │
-│  ✓ Increase threads per block to improve occupancy            │
-│                                                                 │
+│  ✓ Increase threads per block to improve occupancy             │
+│                                                                │
 └────────────────────────────────────────────────────────────────┘
 ```
 
@@ -916,27 +916,27 @@ float val = shared[threadIdx.x][0];  // Now conflict-free
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│           OPTIMIZATION PRIORITY ORDER                    │
+│           OPTIMIZATION PRIORITY ORDER                   │
 ├─────────────────────────────────────────────────────────┤
-│                                                          │
+│                                                         │
 │  1. Algorithm Selection (10-1000x speedup)              │
 │     Choose the right algorithm first!                   │
-│                                                          │
+│                                                         │
 │  2. Memory Access Optimization (2-10x)                  │
 │     • Coalescing                                        │
 │     • Shared memory                                     │
 │     • Reduce transfers                                  │
-│                                                          │
+│                                                         │
 │  3. Occupancy Optimization (1.5-3x)                     │
 │     • Adjust block size                                 │
 │     • Reduce register usage                             │
 │     • Optimize shared memory                            │
-│                                                          │
+│                                                         │
 │  4. Instruction Optimization (1.2-2x)                   │
 │     • Fast math                                         │
 │     • Unroll loops                                      │
 │     • Reduce divergence                                 │
-│                                                          │
+│                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
 

@@ -43,10 +43,12 @@ As of 2026, CUDA has matured through major toolkit releases up to **CUDA Toolkit
 │  │ │Cache │ │  │ │Cache │ │  │ │Cache │ │  │ │Cache │ │             │
 │  │ └──────┘ │  │ └──────┘ │  │ └──────┘ │  │ └──────┘ │             │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘             │
-│                                                                     │
-│                    ┌─────────────────────┐                          │
-│                    │   Shared L3 Cache   │                          │
-│                    └─────────────────────┘                          │
+│   ┌──────────────────────┐    ┌──────────────────────┐              │
+│   │   Shared L2 Cache    │    │   Shared L2 Cache    │              │
+│   └──────────────────────┘    └──────────────────────┘              │
+│    ┌─────────────────────────────────────────────────┐              │
+│    │                 Shared L3 Cache                 │              │
+│    └─────────────────────────────────────────────────┘              │
 │                                                                     │
 │  Features: Few cores, Complex control logic, Large caches           │
 │  Best for: Sequential processing, Complex branching                 │
@@ -160,33 +162,33 @@ CUDA uses **SIMT** (Single Instruction, Multiple Threads):
   enabling fine-grained divergence and reconvergence
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    CUDA THREAD HIERARCHY                    │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Grid (All threads in a kernel launch)                      │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │                                                    │     │
-│  │  Block (0,0)          Block (1,0)          Block (2,0)   │
-│  │  ┌─────────────┐      ┌─────────────┐      ┌──────────┐  │
-│  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T│  │
-│  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T│  │
-│  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T│  │
-│  │  └─────────────┘      └─────────────┘      └──────────┘  │
-│  │                                                          │
-│  │  Block (0,1)          Block (1,1)          Block (2,1)   │
-│  │  ┌─────────────┐      ┌─────────────┐      ┌──────────┐  │
-│  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T│  │
-│  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T│  │
-│  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T│  │
-│  │  └─────────────┘      └─────────────┘      └──────────┘  │
-│  │                                                    │     │
-│  └────────────────────────────────────────────────────┘     │
-│                                                             │
-│  T = Thread    Each thread has unique ID                    │
-│  Threads grouped into Blocks                                │
-│  Blocks grouped into Grid                                   │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                    CUDA THREAD HIERARCHY                         │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Grid (All threads in a kernel launch)                           │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │                                                             │ │
+│  │  Block (0,0)          Block (1,0)           Block (2,0)     | │
+│  │  ┌─────────────┐      ┌─────────────┐      ┌─────────────┐  | │
+│  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T T │  | │
+│  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T T │  | │
+│  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T T │  │ │
+│  │  └─────────────┘      └─────────────┘      └─────────────┘  │ │
+│  │                                                             │ │
+│  │  Block (0,1)          Block (1,1)          Block (2,1)      │ │
+│  │  ┌─────────────┐      ┌─────────────┐      ┌─────────────┐  │ │
+│  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T T │  │ │
+│  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T T │  │ │
+│  │  │ T T T T T T │      │ T T T T T T │      │ T T T T T T │  │ │
+│  │  └─────────────┘      └─────────────┘      └─────────────┘  │ │
+│  │                                                             │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  T = Thread    Each thread has unique ID                         │
+│  Threads grouped into Blocks                                     │
+│  Blocks grouped into Grid                                        │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ### Key Hierarchy Concepts:
@@ -564,5 +566,5 @@ In the next tutorial, we'll write our first CUDA kernel and understand:
 - [CUDA Tile C++ API Reference](https://docs.nvidia.com/cuda/cuda-tile-cpp-api-reference/)
 - [Blackwell Architecture Whitepaper](https://resources.nvidia.com/en-us-blackwell-architecture)
 
-Ready to write your first CUDA kernel? Continue to **02_first_kernel.cu**!
+Ready to write your first CUDA kernel? Continue to [**02_first_kernel.cu**](./02_first_kernel.cu)!
 

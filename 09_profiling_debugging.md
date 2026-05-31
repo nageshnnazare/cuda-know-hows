@@ -977,7 +977,7 @@ cuda-gdb ./program
 ### Key Takeaways
 
 ✓ **Always check for errors** - CUDA errors are silent by default  
-✓ **Use cuda-memcheck regularly** - Catches memory bugs early  
+✓ **Use Compute Sanitizer regularly** - Catches memory bugs early  
 ✓ **Profile before optimizing** - Measure, don't guess  
 ✓ **Start with Nsight Systems** - Find bottlenecks first  
 ✓ **Use Nsight Compute for details** - Optimize hot kernels  
@@ -985,11 +985,65 @@ cuda-gdb ./program
 
 ---
 
+## Updates for CUDA 12.8+ / 13.x (2025-2026)
+
+### cuda-memcheck → Compute Sanitizer
+
+`cuda-memcheck` has been replaced by **Compute Sanitizer** (available since CUDA 11.x,
+now the standard tool). It provides the same functionality with enhanced features:
+
+```bash
+# Memory error checking (replaces cuda-memcheck)
+compute-sanitizer --tool memcheck ./program
+
+# Race condition detection
+compute-sanitizer --tool racecheck ./program
+
+# Synchronization error detection
+compute-sanitizer --tool synccheck ./program
+
+# Memory initialization checking
+compute-sanitizer --tool initcheck ./program
+```
+
+New in CUDA 12.8+:
+- **Python call stack support**: Compute Sanitizer can now show Python call stacks
+  alongside CUDA errors, invaluable for debugging PyTorch/JAX custom ops
+- **Tensor Core MMA guardrails**: Detects incorrect tensor core usage on Blackwell
+
+### Nsight Systems Updates
+
+- ETW (Event Tracing for Windows) support for CUDA driver activity reporting
+- Improved CUDA Graph visualization
+- Better multi-GPU timeline correlation
+- CUDA Tile kernel profiling support
+
+### Nsight Compute Updates
+
+- Blackwell architecture support (sm_100, sm_120)
+- Tensor Core utilization metrics for 5th-gen TCs
+- CompileIQ integration for auto-tuning suggestions
+- CUDA Tile kernels can be profiled the same way as SIMT kernels
+
+### CompileIQ Auto-Tuning (CUDA 13.3+)
+
+CompileIQ uses genetic algorithms to find optimal compiler configurations:
+
+```bash
+# Auto-tune a specific kernel for up to 15% speedup
+nvcc --compileiq my_kernel.cu -arch=sm_90
+
+# CompileIQ generates specialized compiler flags per kernel
+# Particularly effective for GEMM and attention kernels
+```
+
+---
+
 ## Additional Resources
 
 ### Official Documentation
 
-- [CUDA-MEMCHECK Documentation](https://docs.nvidia.com/cuda/cuda-memcheck/)
+- [Compute Sanitizer Documentation](https://docs.nvidia.com/compute-sanitizer/)
 - [CUDA-GDB User Guide](https://docs.nvidia.com/cuda/cuda-gdb/)
 - [Nsight Systems User Guide](https://docs.nvidia.com/nsight-systems/)
 - [Nsight Compute Documentation](https://docs.nvidia.com/nsight-compute/)
@@ -998,12 +1052,12 @@ cuda-gdb ./program
 
 - [NVIDIA Developer Blog: Profiling](https://developer.nvidia.com/blog/tag/profiling/)
 - [CUDA Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/)
-- [GPU Performance Analysis](https://developer.nvidia.com/blog/cuda-pro-tip-understand-fat-binaries-jit-caching/)
+- [CUDA Tile C++ API Reference](https://docs.nvidia.com/cuda/cuda-tile-cpp-api-reference/)
 
 ### Training
 
 - [NVIDIA Deep Learning Institute](https://www.nvidia.com/en-us/training/)
-- [CUDA Training Series](https://www.olcf.ornl.gov/cuda-training-series/)
+- [GTC On-Demand](https://www.nvidia.com/en-us/on-demand/) - Conference talks on profiling and optimization
 
 ---
 

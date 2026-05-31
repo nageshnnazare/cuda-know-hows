@@ -151,7 +151,7 @@ bool verifyResults(const float *a, const float *b, const float *c, int n) {
 
 int main(void) {
     printf("╔═══════════════════════════════════════════════════════╗\n");
-    printf("║       CUDA Tutorial: First Kernel Examples           ║\n");
+    printf("║       CUDA Tutorial: First Kernel Examples            ║\n");
     printf("╚═══════════════════════════════════════════════════════╝\n\n");
     
     /*
@@ -418,8 +418,8 @@ int main(void) {
     CUDA_CHECK(cudaDeviceReset());
     
     printf("\n╔═══════════════════════════════════════════════════════╗\n");
-    printf("║                Program completed successfully!        ║\n");
-    printf("╚═══════════════════════════════════════════════════════╝\n");
+    printf(  "║                Program completed successfully!        ║\n");
+    printf(  "╚═══════════════════════════════════════════════════════╝\n");
     
     return EXIT_SUCCESS;
 }

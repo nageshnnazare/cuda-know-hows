@@ -24,23 +24,29 @@ CUDA_PATH ?= /usr/local/cuda
 # Architecture flags - adjust for your GPU
 # Find your compute capability: nvidia-smi --query-gpu=compute_cap --format=csv
 # Common values:
-#   sm_35 - Kepler (K20, K40)
-#   sm_52 - Maxwell (GTX 9xx)
-#   sm_61 - Pascal (GTX 10xx, Titan X)
-#   sm_70 - Volta (V100, Titan V)
-#   sm_75 - Turing (RTX 20xx, T4)
-#   sm_80 - Ampere (A100, RTX 30xx)
-#   sm_89 - Ada (RTX 40xx)
-ARCH := sm_75
+#   sm_52  - Maxwell (GTX 9xx)          [feature-complete]
+#   sm_61  - Pascal (GTX 10xx, Titan X) [feature-complete]
+#   sm_70  - Volta (V100, Titan V)      [feature-complete]
+#   sm_75  - Turing (RTX 20xx, T4)
+#   sm_80  - Ampere (A100, RTX 30xx)
+#   sm_86  - Ampere (RTX 30xx laptop)
+#   sm_89  - Ada Lovelace (RTX 40xx, L40)
+#   sm_90  - Hopper (H100, H200)
+#   sm_100 - Blackwell DC (B200, GB200)
+#   sm_120 - Blackwell Consumer (RTX 50xx)
+# Use 'a' suffix for arch-specific features (e.g., sm_90a, sm_100a)
+ARCH := sm_80
 
 # Compiler flags
 NVCCFLAGS := -arch=$(ARCH)
-NVCCFLAGS += -std=c++11
+NVCCFLAGS += -std=c++17
 NVCCFLAGS += -O3                      # Optimization level
 NVCCFLAGS += --use_fast_math          # Use fast math approximations
 NVCCFLAGS += -Xcompiler -Wall         # Enable all warnings
 NVCCFLAGS += -Xcompiler -Wextra       # Extra warnings
 NVCCFLAGS += -lineinfo                # Line info for profiler
+# For CUDA Tile C++ (requires CUDA 13.3+, sm_80+):
+# NVCCFLAGS += -std=c++20 --enable-tile
 
 # Debug flags (use with: make debug)
 DEBUG_FLAGS := -g -G                  # Debug symbols for host and device
@@ -190,6 +196,11 @@ gpu_locks_and_synchronization: gpu_locks_and_synchronization.cu
 	$(NVCC) $(NVCCFLAGS) $(INCLUDES) -o $@ $< $(LDFLAGS) $(LIBS)
 	@echo "$(GREEN)✓ Built $@$(NC)"
 
+22_modern_cuda: 22_modern_cuda.cu
+	@echo "$(BLUE)Building $@ (Modern CUDA / Blackwell)...$(NC)"
+	$(NVCC) $(NVCCFLAGS) $(INCLUDES) -o $@ $< $(LDFLAGS) $(LIBS)
+	@echo "$(GREEN)✓ Built $@$(NC)"
+
 # Debug build
 debug: NVCCFLAGS = $(DEBUG_FLAGS)
 debug: clean all
@@ -308,6 +319,7 @@ help:
 	@echo "  19_multi_gpu                   - Multi-GPU, P2P, load balancing"
 	@echo "  21_deep_learning               - Neural networks, CNNs"
 	@echo "  gpu_locks_and_synchronization  - Atomics, locks, lock-free"
+	@echo "  22_modern_cuda                 - Modern CUDA, Blackwell, Tile, FP4/FP8"
 	@echo ""
 
 # Detect architecture automatically (requires running GPU)
@@ -368,7 +380,7 @@ examples-intermediate: 05_matrix_operations 06_shared_memory
 examples-advanced: 07_streams_async 08_advanced_topics
 	@echo "$(GREEN)✓ Advanced examples built$(NC)"
 
-examples-applications: 12_image_processing 13_sorting_algorithms 14_scientific_computing 16_graph_algorithms 17_advanced_memory 18_ml_primitives 19_multi_gpu 21_deep_learning gpu_locks_and_synchronization
+examples-applications: 12_image_processing 13_sorting_algorithms 14_scientific_computing 16_graph_algorithms 17_advanced_memory 18_ml_primitives 19_multi_gpu 21_deep_learning gpu_locks_and_synchronization 22_modern_cuda
 	@echo "$(GREEN)✓ Application examples built$(NC)"
 
 # ============================================================================
@@ -388,6 +400,15 @@ examples-applications: 12_image_processing 13_sorting_algorithms 14_scientific_c
 # Compute Capability Reference:
 # - Check your GPU: nvidia-smi --query-gpu=name,compute_cap --format=csv
 # - Update ARCH variable for your GPU
+# - For Blackwell datacenter GPUs: ARCH := sm_100
+# - For RTX 50-series consumer GPUs: ARCH := sm_120
+# - Use 'a' suffix for arch-specific features: sm_90a, sm_100a
+#
+# CUDA Toolkit Compatibility:
+# - CUDA 12.x: Turing through Hopper (sm_75 - sm_90)
+# - CUDA 12.8+: Adds Blackwell (sm_100, sm_120)
+# - CUDA 13.x: Full Blackwell support, CUDA Tile C++, C++23
+# - Feature-complete (no new features): Maxwell, Pascal, Volta
 #
 # Profiling:
 # - Use 'make profile-<example>' for timeline view
@@ -398,6 +419,7 @@ examples-applications: 12_image_processing 13_sorting_algorithms 14_scientific_c
 # - Build with 'make debug'
 # - Use cuda-gdb: cuda-gdb ./example
 # - Or use 'make memcheck-<example>'
+# - CUDA 12.8+: Compute Sanitizer supports Python call stacks
 #
 # For more information, see README.md
 #

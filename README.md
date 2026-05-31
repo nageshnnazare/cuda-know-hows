@@ -42,23 +42,24 @@ Welcome to the comprehensive CUDA programming tutorial! This tutorial series tak
 12. [Work Allocation & Execution Guide](#part-12-work-allocation) - Block/Grid sizing, occupancy
 
 ### Part 4: Practical Examples & Applications
-12. [Image Processing](# part-12-image-processing) - Convolution, edge detection, filters
-13. [Sorting Algorithms](#part-13-sorting) - Bitonic, radix, merge sort
-14. [Scientific Computing](#part-14-scientific) - PDEs, N-body, Monte Carlo
-15. [Optimization Case Studies](#part-15-optimization) - Before/after improvements
-21. [Deep Learning from Scratch](#part-21-deep-learning) - Regression to CNNs
+13. [Image Processing](#part-13-image-processing) - Convolution, edge detection, filters
+14. [Sorting Algorithms](#part-14-sorting) - Bitonic, radix, merge sort
+15. [Scientific Computing](#part-15-scientific) - PDEs, N-body, Monte Carlo
+16. [Optimization Case Studies](#part-16-optimization) - Before/after improvements
+17. [Graph Algorithms](#part-17-graphs)
+18. [Advanced Memory Techniques](#part-18-advanced-memory)
+19. [Machine Learning Primitives](#part-19-ml-primitives)
+20. [Multi-GPU Programming](#part-20-multi-gpu)
+21. [Testing & Debugging Guide](#part-21-testing)
+22. [Deep Learning from Scratch](#part-22-deep-learning) - Regression to CNNs
 
-### Part 4: Practical Examples
-12. [Image Processing](#part-12-image-processing)
-13. [Sorting Algorithms](#part-13-sorting)
-14. [Scientific Computing](#part-14-scientific)
-15. [Optimization Case Studies](#part-15-optimization)
-16. [Graph Algorithms](#part-16-graphs)
-17. [Advanced Memory Techniques](#part-17-advanced-memory)
-18. [Machine Learning Primitives](#part-18-ml-primitives)
-19. [Multi-GPU Programming](#part-19-multi-gpu)
-20. [Testing & Debugging Guide](#part-20-testing)
-21. [Deep Learning from Scratch](#part-21-deep-learning)
+### Part 5: Modern CUDA (2024-2026)
+23. [Modern CUDA & Blackwell](#part-23-modern-cuda) - CUDA Tile, FP4/FP8, Blackwell architecture
+
+### Special Guides
+- [Memory Allocation Guide](MEMORY_ALLOCATION_GUIDE.md) - Complete reference for host/device memory strategies
+- [Work Allocation Guide](WORK_ALLOCATION_GUIDE.md) - Block/grid sizing, occupancy optimization
+- [GPU Locks & Synchronization Guide](GPU_LOCKS_AND_SYNCHRONIZATION_GUIDE.md) - Atomics, sync primitives
 
 ### Additional Resources
 - [Setup Instructions](#setup-instructions)
@@ -639,16 +640,19 @@ Shows actual timing data for different block sizes:
 ### System Requirements
 
 **Hardware:**
-- NVIDIA GPU with compute capability ≥ 3.0
-- Recommended: GTX 1060 or better
-- For advanced features (dynamic parallelism): ≥ 3.5
+- NVIDIA GPU with compute capability >= 7.0 (Volta or later recommended)
+- Entry-level: RTX 2060 or GTX 1650 (Turing)
+- Recommended: RTX 3060+ (Ampere) or RTX 4060+ (Ada)
+- For Tensor Core examples: sm_70+ (Volta or later)
+- For CUDA Tile examples: sm_80+ (Ampere or later)
 
 **Software:**
-- CUDA Toolkit 11.0 or later
+- CUDA Toolkit 12.6 or later (13.3 recommended for latest features)
 - Compatible C/C++ compiler:
-  - Linux: gcc/g++ 7.0+
-  - Windows: Visual Studio 2017+
-- CMake 3.10+ (optional, for build system)
+  - Linux: GCC 7-14, Clang 11+
+  - Windows: Visual Studio 2019+
+- C++20 for CUDA Tile programming; C++23 supported in nvcc 13.3+
+- CMake 3.18+ (optional, for build system)
 
 ### Installation
 
@@ -747,16 +751,22 @@ nvcc -arch=sm_70 -rdc=true -o program program.cu -lcudadevrt
 
 ### Architecture Flags
 
-| GPU Generation | Compute Capability | Flag |
-|----------------|-------------------|------|
-| Kepler | 3.0, 3.5, 3.7 | `-arch=sm_35` |
-| Maxwell | 5.0, 5.2 | `-arch=sm_52` |
-| Pascal | 6.0, 6.1 | `-arch=sm_61` |
-| Volta | 7.0 | `-arch=sm_70` |
-| Turing | 7.5 | `-arch=sm_75` |
-| Ampere | 8.0, 8.6 | `-arch=sm_80` |
-| Ada | 8.9 | `-arch=sm_89` |
-| Hopper | 9.0 | `-arch=sm_90` |
+| GPU Generation | Compute Capability | Flag | Example GPUs | Status |
+|----------------|-------------------|------|--------------|--------|
+| Maxwell | 5.0, 5.2 | `-arch=sm_52` | GTX 9xx | Feature-complete* |
+| Pascal | 6.0, 6.1 | `-arch=sm_61` | GTX 10xx, P100 | Feature-complete* |
+| Volta | 7.0 | `-arch=sm_70` | V100, Titan V | Feature-complete* |
+| Turing | 7.5 | `-arch=sm_75` | RTX 20xx, T4 | Active |
+| Ampere | 8.0, 8.6 | `-arch=sm_80` | A100, RTX 30xx | Active |
+| Ada Lovelace | 8.9 | `-arch=sm_89` | RTX 40xx, L40 | Active |
+| Hopper | 9.0 | `-arch=sm_90` | H100, H200 | Active |
+| Blackwell DC | 10.0, 10.3 | `-arch=sm_100` | B200, GB200, GB300 | Active |
+| Blackwell Consumer | 12.0, 12.1 | `-arch=sm_120` | RTX 50xx, DGX Spark | Active |
+
+*Feature-complete: no new features; offline compilation will be removed in next major toolkit release.
+
+Use the `a` suffix for architecture-accelerated features (e.g., `-arch=sm_90a` for
+Hopper-specific features, `-arch=sm_100a` for Blackwell-specific features).
 
 Check your GPU:
 ```bash
@@ -897,8 +907,8 @@ printf("Max shared memory: %zu\n", prop.sharedMemPerBlock);
 
 ### Books
 
-- **"Programming Massively Parallel Processors"** by Hwu, Kirk & Hajj
-  - Best comprehensive textbook
+- **"Programming Massively Parallel Processors"** by Hwu, Kirk & Hajj (4th ed.)
+  - The definitive textbook, updated through Hopper
   - Covers fundamentals to advanced topics
 
 - **"CUDA by Example"** by Sanders & Kandrot
@@ -911,16 +921,26 @@ printf("Max shared memory: %zu\n", prop.sharedMemPerBlock);
 
 ### Online Resources
 
-- [NVIDIA Developer Blog](https://developer.nvidia.com/blog/)
-- [CUDA Zone](https://developer.nvidia.com/cuda-zone)
-- [GPU Computing Gems](https://developer.nvidia.com/gpugems/gpugems3/contributors)
-- [Parallel Forall Blog](https://developer.nvidia.com/blog/tag/parallel-forall/)
+- [NVIDIA Developer Blog](https://developer.nvidia.com/blog/) - Regular posts on new features and techniques
+- [CUDA Toolkit Documentation](https://docs.nvidia.com/cuda/) - The authoritative reference
+- [CUDA Tile C++ API Reference](https://docs.nvidia.com/cuda/cuda-tile-cpp-api-reference/) - Modern tile programming
+- [CUTLASS GitHub](https://github.com/NVIDIA/cutlass) - High-performance GEMM templates and CuTe DSL
+- [NVIDIA/cuda-samples](https://github.com/NVIDIA/cuda-samples) - Official code samples
+
+### Libraries & Frameworks
+
+- [CUTLASS](https://github.com/NVIDIA/cutlass) - High-performance linear algebra templates (supports FP4-FP64)
+- [Triton](https://github.com/triton-lang/triton) - Python-based GPU kernel language
+- [cuBLAS](https://docs.nvidia.com/cuda/cublas/) - Optimized BLAS on GPU
+- [cuDNN](https://docs.nvidia.com/deeplearning/cudnn/) - Deep learning primitives
+- [NCCL](https://docs.nvidia.com/deeplearning/nccl/) - Multi-GPU and multi-node collective communication
+- [Thrust/CCCL](https://github.com/NVIDIA/cccl) - C++ parallel algorithms and containers
 
 ### Video Tutorials
 
 - [NVIDIA Deep Learning Institute](https://www.nvidia.com/en-us/training/)
-- [Intro to Parallel Programming (Udacity)](https://www.udacity.com/course/intro-to-parallel-programming--cs344)
 - [CUDA Training Series (ORNL)](https://www.olcf.ornl.gov/cuda-training-series/)
+- [GTC On-Demand](https://www.nvidia.com/en-us/on-demand/) - Conference talks on latest GPU programming
 
 ### Community
 
@@ -1052,7 +1072,7 @@ Start with [Part 1: Introduction](01_introduction.md)
 
 ---
 
-*Last Updated: December 2025*
-*CUDA Version: 12.x*
-*Tutorial Version: 1.0*
+*Last Updated: May 2026*
+*CUDA Version: 13.3 (also compatible with 12.x)*
+*Tutorial Version: 2.0*
 

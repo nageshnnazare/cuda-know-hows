@@ -271,9 +271,9 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 │                       ↕                                      │
 │  ┌────────────────────────────────────────────────────────┐  │
 │  │       LOAD/STORE UNITS (4 units)                       │  │
-│  │  ┌────┐┌────┐┌────┐┌────┐                              │  │
+│  │  ┌─────┐┌─────┐┌─────┐┌─────┐                          │  │
 │  │  │LD/ST││LD/ST││LD/ST││LD/ST│                          │  │
-│  │  └────┘└────┘└────┘└────┘                              │  │
+│  │  └─────┘└─────┘└─────┘└─────┘                          │  │
 │  │                                                        │  │
 │  │  • Memory address calculation                          │  │
 │  │  • Shared memory access                                │  │
@@ -833,4 +833,366 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-This is part 1 of the advanced GPU architecture internals guide. Would you like me to continue with the remaining sections covering cache hierarchy, memory controllers, interconnects, architecture evolution across generations, and detailed performance characteristics?
+---
+
+## Architecture Evolution: Hopper and Blackwell
+
+### Hopper Architecture (sm_90, 2022-2024)
+
+Hopper (H100, H200) introduced several foundational changes that Blackwell builds upon:
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                    HOPPER SM ARCHITECTURE (sm_90)                            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐      │
+│  │  WARP SCHEDULERS (4 per SM)                                        │      │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐               │      │
+│  │  │ Sched 0  │ │ Sched 1  │ │ Sched 2  │ │ Sched 3  │               │      │
+│  │  │ 2 disp   │ │ 2 disp   │ │ 2 disp   │ │ 2 disp   │               │      │
+│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘               │      │
+│  └────────────────────────────────────────────────────────────────────┘      │
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐      │
+│  │  PROCESSING BLOCKS (4 per SM)                                      │      │
+│  │  ┌──────────────┐  ┌──────────────┐                                │      │
+│  │  │ 32 FP32 Cores│  │ 16 INT32     │ × 4 = 128 FP32 + 64 INT32      │      │
+│  │  └──────────────┘  └──────────────┘                                │      │
+│  │  ┌──────────────┐                                                  │      │
+│  │  │ 1 Tensor Core│ × 4 = 4 Tensor Cores (4th gen)                   │      │
+│  │  └──────────────┘                                                  │      │
+│  │  ┌──────────────┐                                                  │      │
+│  │  │ 4 SFU        │ × 4 = 16 Special Function Units                  │      │
+│  │  └──────────────┘                                                  │      │
+│  └────────────────────────────────────────────────────────────────────┘      │
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐      │
+│  │  MEMORY RESOURCES                                                  │      │
+│  │  Register File:    256 KB (65,536 × 32-bit registers)              │      │
+│  │  Shared Memory:    Up to 228 KB (configurable with L1)             │      │
+│  │  L1 Cache:         Unified with shared memory                      │      │
+│  └────────────────────────────────────────────────────────────────────┘      │
+│                                                                              │
+│  NEW IN HOPPER:                                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐      │
+│  │  Tensor Memory Accelerator (TMA):                                  │      │
+│  │    - Hardware unit for async bulk data movement                    │      │
+│  │    - Offloads address calculation from CUDA cores                  │      │
+│  │    - Supports 1D-5D tensor descriptors                             │      │
+│  │    - Multicast: single TMA load → multiple SMs in a cluster        │      │
+│  │                                                                    │      │
+│  │  Warp-Group MMA (WGMMA):                                           │      │
+│  │    - 128 threads (4 warps) cooperate on single MMA operation       │      │
+│  │    - Asynchronous: warp group issues MMA, continues other work     │      │
+│  │    - Source: shared memory or registers                            │      │
+│  │    - Higher throughput than per-warp mma.sync                      │      │
+│  │                                                                    │      │
+│  │  Thread Block Clusters:                                            │      │
+│  │    - New hierarchy level: groups of thread blocks                  │      │
+│  │    - Blocks in a cluster can access each other's shared memory     │      │
+│  │    - Distributed Shared Memory (DSMEM) across SMs                  │      │
+│  │    - Cluster size: up to 16 blocks                                 │      │
+│  │                                                                    │      │
+│  │  DPX Instructions:                                                 │      │
+│  │    - Hardware-accelerated dynamic programming                      │      │
+│  │    - 7x faster than software for Smith-Waterman, Needleman-Wunsch  │      │
+│  └────────────────────────────────────────────────────────────────────┘      │
+│                                                                              │
+│  H100 SXM5: 132 SMs, 80 GB HBM3 (3.35 TB/s), 700W TDP                        │
+│  H200:      132 SMs, 141 GB HBM3e (4.8 TB/s), 700W TDP                       │
+│  L2 Cache:  50 MB                                                            │
+│  NVLink 4:  900 GB/s per GPU                                                 │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Blackwell Architecture (sm_100/sm_120, 2025-2026)
+
+Blackwell represents the most significant architectural leap since Volta
+introduced Tensor Cores. It features a dual-die design and introduces
+dedicated Tensor Memory.
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                   BLACKWELL GPU DIE (B200 - Dual Die)                        │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│         208 BILLION TRANSISTORS (TSMC 4NP process)                           │
+│                                                                              │
+│  ┌────────────────────────────────┐  ┌────────────────────────────────┐      │
+│  │          DIE 0                 │  │          DIE 1                 │      │
+│  │                                │  │                                │      │
+│  │  ┌──────┬──────┬──────┬────┐   │  │  ┌──────┬──────┬──────┬────┐   │      │
+│  │  │GPC 0 │GPC 1 │GPC 2 │... │   │  │  │GPC N │GPC.. │GPC.. │... │   │      │
+│  │  │  SM  │  SM  │  SM  │    │   │  │  │  SM  │  SM  │  SM  │    │   │      │
+│  │  │  SM  │  SM  │  SM  │    │   │  │  │  SM  │  SM  │  SM  │    │   │      │
+│  │  └──────┴──────┴──────┴────┘   │  │  └──────┴──────┴──────┴────┘   │      │
+│  │                                │  │                                │      │
+│  │  ┌──────────────────────────┐  │  │  ┌──────────────────────────┐  │      │
+│  │  │      L2 Cache Slice      │  │  │  │      L2 Cache Slice      │  │      │
+│  │  └──────────────────────────┘  │  │  └──────────────────────────┘  │      │
+│  │                                │  │                                │      │
+│  │  ┌──────────────────────────┐  │  │  ┌──────────────────────────┐  │      │
+│  │  │    HBM3e Controllers     │  │  │  │    HBM3e Controllers     │  │      │
+│  │  └──────────────────────────┘  │  │  └──────────────────────────┘  │      │
+│  │                                │  │                                │      │
+│  └────────────────┬───────────────┘  └───────────────┬────────────────┘      │
+│                   │                                  │                       │
+│                   └─────────┬────────────────────────┘                       │
+│                             │                                                │
+│                   ┌─────────┴──────────┐                                     │
+│                   │  10 TB/s Chip-to-  │                                     │
+│                   │  Chip Interconnect │                                     │
+│                   └────────────────────┘                                     │
+│                                                                              │
+│  UNIFIED PROGRAMMING MODEL:                                                  │
+│    Both dies appear as a single GPU to CUDA programs.                        │
+│    The 10 TB/s interconnect is transparent to software.                      │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Blackwell SM Architecture (sm_100 - Datacenter)
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                    BLACKWELL SM ARCHITECTURE (sm_100)                        │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐      │
+│  │  WARP SCHEDULERS (4 per SM)                                        │      │
+│  └────────────────────────────────────────────────────────────────────┘      │
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐      │
+│  │  CUDA CORES                                                        │      │
+│  │  128 FP32 | 64 INT32 | 64 FP64                                     │      │
+│  │                                                                    │      │
+│  │  5th Generation TENSOR CORES (4 per SM):                           │      │
+│  │  ┌──────────────────────────────────────────────────────────┐      │      │
+│  │  │  Key change: tcgen05.mma (single-thread instruction)     │      │      │
+│  │  │                                                          │      │      │
+│  │  │  Previous gens: mma.sync (warp-synchronous, all 32       │      │      │
+│  │  │    threads must synchronize before issuing MMA)          │      │      │
+│  │  │                                                          │      │      │
+│  │  │  Blackwell: tcgen05.mma (single thread issues MMA)       │      │      │
+│  │  │    - Removes warp-level sync requirement                 │      │      │
+│  │  │    - Enables true per-thread scheduling                  │      │      │
+│  │  │    - Reduces idle cycles in dependency chains            │      │      │
+│  │  │                                                          │      │      │
+│  │  │  Supported Precisions:                                   │      │      │
+│  │  │    FP4 (NVFP4, MXFP4) - NEW: 2x throughput vs FP8        │      │      │
+│  │  │    FP6 (e3m2, e2m3)   - NEW: balance of range/precision  │      │      │
+│  │  │    FP8 (e4m3, e5m2)                                      │      │      │
+│  │  │    FP16, BF16                                            │      │      │
+│  │  │    TF32, FP32                                            │      │      │
+│  │  │    FP64                                                  │      │      │
+│  │  │    INT8                                                  │      │      │
+│  │  │                                                          │      │      │
+│  │  │  Block-Scaled Formats:                                   │      │      │
+│  │  │    Groups of 32 elements share an 8-bit scale factor     │      │      │
+│  │  │    Hardware performs rescaling automatically             │      │      │
+│  │  │    No software overhead for dequantization               │      │      │
+│  │  └──────────────────────────────────────────────────────────┘      │      │
+│  └────────────────────────────────────────────────────────────────────┘      │
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐      │
+│  │  TENSOR MEMORY (TMEM) - NEW IN BLACKWELL                           │      │
+│  │                                                                    │      │
+│  │  Dedicated on-chip memory for tensor core operands:                │      │
+│  │    - Separate from shared memory and register file                 │      │
+│  │    - Reduces register pressure during MMA operations               │      │
+│  │    - Explicitly managed via tcgen05 PTX instructions:              │      │
+│  │        tcgen05.alloc       - Allocate TMEM                         │      │
+│  │        tcgen05.ld/st       - Load/store to TMEM                    │      │
+│  │        tcgen05.cp          - Copy data into TMEM                   │      │
+│  │        tcgen05.commit      - Commit pending operations             │      │
+│  │        tcgen05.fence/wait  - Synchronization                       │      │
+│  │        tcgen05.dealloc     - Free TMEM                             │      │
+│  │                                                                    │      │
+│  │  TMEM replaces shared memory as the accumulator storage for MMA.   │      │
+│  │  This frees shared memory for data staging, improving overall      │      │
+│  │  throughput.                                                       │      │
+│  └────────────────────────────────────────────────────────────────────┘      │
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐      │
+│  │  CTA PAIR EXECUTION - NEW IN BLACKWELL                             │      │
+│  │                                                                    │      │
+│  │  Two CTAs (thread blocks) with adjacent ranks within a TPC can:    │      │
+│  │    - Share operands through an intra-TPC communication network     │      │
+│  │    - Reduce redundant data movement                                │      │
+│  │    - Each CTA pair maps to one TPC (2 SMs)                         │      │
+│  │                                                                    │      │
+│  │  Traditional:          CTA Pair:                                   │      │
+│  │  CTA 0 → loads A,B     CTA 0 → loads A                             │      │
+│  │  CTA 1 → loads A,B     CTA 1 → loads B                             │      │
+│  │                         Share A,B via intra-TPC network            │      │
+│  │                         Result: ~50% less memory traffic           │      │
+│  └────────────────────────────────────────────────────────────────────┘      │
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐      │
+│  │  MEMORY SUBSYSTEM                                                  │      │
+│  │  Register File:    256 KB per SM                                   │      │
+│  │  Shared Memory:    Up to 228 KB (configurable)                     │      │
+│  │  L2 Cache:         Large (across both dies)                        │      │
+│  │  HBM3e:            192 GB @ 8 TB/s (B200)                          │      │
+│  │                    288 GB @ higher BW (Blackwell Ultra/GB300)      │      │
+│  │  NVLink 5:         1.8 TB/s per GPU                                │      │
+│  │  PCIe:             Gen5, 128 GB/s                                  │      │
+│  └────────────────────────────────────────────────────────────────────┘      │
+│                                                                              │
+│  B200 SPECIFICATIONS:                                                        │
+│    FP4 Tensor:    20 PFLOPS per GPU (with sparsity: 40 PFLOPS)               │
+│    FP8 Tensor:    10 PFLOPS                                                  │
+│    FP16/BF16:     5 PFLOPS                                                   │
+│    TF32:          2.5 PFLOPS                                                 │
+│    FP32:          80 TFLOPS                                                  │
+│    FP64:          40 TFLOPS                                                  │
+│    TDP:           Up to 1,200W                                               │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Blackwell Consumer vs Datacenter (sm_120 vs sm_100)
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│         BLACKWELL VARIANTS: DATACENTER (sm_100) vs CONSUMER (sm_120)         │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  Despite sharing the "Blackwell" name, sm_100 and sm_120 are                 │
+│  architecturally distinct. sm_120 is closer to a Hopper/Ada hybrid.          │
+│                                                                              │
+│  ┌─────────────────────┬────────────────────┬────────────────────┐           │
+│  │ Feature             │ sm_100 (DC)        │ sm_120 (Consumer)  │           │
+│  ├─────────────────────┼────────────────────┼────────────────────┤           │
+│  │ Products            │ B200, GB200, GB300 │ RTX 50xx, DGX Spark│           │
+│  │ tcgen05 (5th-gen TC)│ Yes                │ No                 │           │
+│  │ Tensor Memory (TMEM)│ Yes                │ No                 │           │
+│  │ CTA Pair Execution  │ Yes                │ Yes                │           │
+│  │ WGMMA (from Hopper) │ Yes                │ Yes                │           │
+│  │ Cluster Operations  │ Yes                │ Yes                │           │
+│  │ Block-Scaled MMA    │ Via tcgen05 (async)│ Via mma.sync       │           │
+│  │ FP4/FP6 Support     │ Full (tcgen05)     │ Limited (mma.sync) │           │
+│  │ Capsule Mercury     │ Yes (default)      │ Yes (default)      │           │
+│  │ setmaxnreg          │ Yes                │ Yes                │           │
+│  │ Memory              │ HBM3e (192-288 GB) │ GDDR7 (16-32 GB)   │           │
+│  │ NVLink              │ NVLink 5 (1.8 TB/s)│ None               │           │
+│  └─────────────────────┴────────────────────┴────────────────────┘           │
+│                                                                              │
+│  Implications for developers:                                                │
+│  - Code targeting sm_100 features (tcgen05) will NOT run on sm_120           │
+│  - Use #if __CUDA_ARCH__ >= 1000 to guard datacenter-specific code           │
+│  - CUTLASS and CUDA Tile abstract these differences automatically            │
+│  - For portable high-performance code, use cuBLAS or CUTLASS                 │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Architecture Comparison Table
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    ARCHITECTURE COMPARISON (DATACENTER GPUs)                │
+├──────────┬───────────┬───────────┬───────────┬───────────┬──────────────────┤
+│ Feature  │ Volta     │ Ampere    │ Hopper    │ Blackwell │ Notes            │
+│          │ (V100)    │ (A100)    │ (H100)    │ (B200)    │                  │
+├──────────┼───────────┼───────────┼───────────┼───────────┼──────────────────┤
+│ SM Count │ 80        │ 108       │ 132       │ ~160+     │ Both dies        │
+│ FP32 TC  │ 15.7T     │ 19.5T     │ 67T       │ 80T       │ TFLOPS           │
+│ FP16 TC  │ 125T      │ 312T      │ 990T*     │ 5,000T*   │ *with sparsity   │
+│ FP8 TC   │ -         │ -         │ 1,980T*   │ 10,000T*  │ Hopper+          │
+│ FP4 TC   │ -         │ -         │ -         │ 20,000T*  │ Blackwell only   │
+│ Memory   │ 16/32GB   │ 40/80GB   │ 80/141GB  │ 192/288GB │ HBM              │
+│ BW       │ 900 GB/s  │ 2.0 TB/s  │ 3.35 TB/s │ 8.0 TB/s  │ Memory bandwidth │
+│ NVLink   │ 300 GB/s  │ 600 GB/s  │ 900 GB/s  │ 1.8 TB/s  │ Per GPU          │
+│ TDP      │ 300W      │ 400W      │ 700W      │ 1,200W    │ Max              │
+│ Tensor   │ 1st Gen   │ 3rd Gen   │ 4th Gen   │ 5th Gen   │ TC generation    │
+│ Process  │ 12nm      │ 7nm       │ 4nm       │ 4NP       │ TSMC             │
+│ Trans.   │ 21.1B     │ 54.2B     │ 80B       │ 208B      │ Billions         │
+│ L2 Cache │ 6 MB      │ 40 MB     │ 50 MB     │ ~96 MB    │ Combined         │
+└──────────┴───────────┴───────────┴───────────┴───────────┴──────────────────┘
+```
+
+### Evolution of Tensor Core Programming
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│              TENSOR CORE PROGRAMMING MODEL EVOLUTION                         │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  VOLTA (2017) - 1st Gen Tensor Cores                                         │
+│    Instruction: wmma (Warp Matrix Multiply Accumulate)                       │
+│    Scope: Warp-level (32 threads cooperate)                                  │
+│    API: nvcuda::wmma::mma_sync()                                             │
+│    Precision: FP16 → FP16/FP32                                               │
+│    Tile: 16×16×16                                                            │
+│                                                                              │
+│  AMPERE (2020) - 3rd Gen Tensor Cores                                        │
+│    Instruction: mma.sync (enhanced)                                          │
+│    New: TF32 (transparent FP32 speedup), BF16, INT8, INT4, Binary            │
+│    New: Async copy (cp.async) for shared memory staging                      │
+│    New: Fine-grained structured sparsity (2:4)                               │
+│                                                                              │
+│  HOPPER (2022) - 4th Gen Tensor Cores                                        │
+│    Instruction: wgmma (Warp-Group MMA)                                       │
+│    Scope: 128 threads (4 warps = 1 warp group)                               │
+│    New: TMA hardware for data movement                                       │
+│    New: FP8 (e4m3, e5m2)                                                     │
+│    New: Asynchronous MMA (issue + continue working)                          │
+│    New: Thread Block Clusters for multi-SM cooperation                       │
+│                                                                              │
+│  BLACKWELL (2025) - 5th Gen Tensor Cores                                     │
+│    Instruction: tcgen05.mma (SINGLE-THREAD launch!)                          │
+│    Scope: Single thread issues MMA, independent scheduling                   │
+│    New: Tensor Memory (TMEM) - dedicated MMA operand storage                 │
+│    New: FP4, FP6 with hardware block-scaling                                 │
+│    New: CTA pair execution for shared operands                               │
+│    New: Capsule Mercury binary format                                        │
+│    Peak: 20 PFLOPS FP4 per B200 GPU                                          │
+│                                                                              │
+│  PROGRAMMING ABSTRACTION TREND:                                              │
+│                                                                              │
+│    Manual thread indexing (2007)                                             │
+│         ↓                                                                    │
+│    Warp-level MMA (2017 - Volta)                                             │
+│         ↓                                                                    │
+│    Warp-Group MMA (2022 - Hopper)                                            │
+│         ↓                                                                    │
+│    Single-Thread MMA (2025 - Blackwell)                                      │
+│         ↓                                                                    │
+│    CUDA Tile: compiler-managed tiles (2024 - CUDA 13.1+)                     │
+│                                                                              │
+│  The trend is clear: NVIDIA is abstracting away synchronization              │
+│  complexity while giving hardware more scheduling freedom.                   │
+│  Understanding the evolution helps you write better code at any level.       │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+### NVLink Evolution
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                         NVLink EVOLUTION                                   │
+├──────────┬──────────────┬──────────────────────────────────────────────────┤
+│ Version  │ BW (per GPU) │ Architecture / Notes                             │
+├──────────┼──────────────┼──────────────────────────────────────────────────┤
+│ NVLink 1 │ 160 GB/s     │ Pascal (P100) - First GPU-to-GPU interconnect    │
+│ NVLink 2 │ 300 GB/s     │ Volta (V100) - CPU-GPU coherence                 │
+│ NVLink 3 │ 600 GB/s     │ Ampere (A100) - 12 links per GPU                 │
+│ NVLink 4 │ 900 GB/s     │ Hopper (H100) - 18 links, NVSwitch 3             │
+│ NVLink 5 │ 1,800 GB/s   │ Blackwell (B200) - NVSwitch 4, NVLink domain     │
+│          │              │ of 72 GPUs acts as single GPU (130 TB/s total)   │
+└──────────┴──────────────┴──────────────────────────────────────────────────┘
+
+  GB200 NVL72 Topology:
+    72 Blackwell GPUs + 36 Grace CPUs
+    All GPUs in a single NVLink domain
+    130 TB/s aggregate bandwidth
+    Acts as one massive GPU for large models
+```
+
+This concludes the GPU architecture internals deep dive, covering hardware
+from the SM level through the latest Blackwell innovations. For hands-on
+examples leveraging these features, see `22_modern_cuda.cu`.

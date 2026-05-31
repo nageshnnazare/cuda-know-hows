@@ -547,9 +547,9 @@ __global__ void maxPool2x2(float *input, float *output,
  * │   ┌─────┐     │     │   ┌─────┐     │
  * │   │ DOG │     │  →  │   │ DOG │ 95% │
  * │   └─────┘     │     │   └─────┘     │
- * │        ┌───┐  │     │        ┌───┐  │
- * │        │CAT│  │     │        │CAT│80%│
- * │        └───┘  │     │        └───┘  │
+ * │        ┌───┐  │     │       ┌───┐   │
+ * │        │CAT│  │     │       │CAT│80%│
+ * │        └───┘  │     │       └───┘   │
  * └───────────────┘     └───────────────┘
  *
  * Architecture:
@@ -702,7 +702,7 @@ void generateMNISTLikeData(float *images, int *labels, int n) {
 
 int main(void) {
     printf("╔═══════════════════════════════════════════════════════╗\n");
-    printf("║      CUDA Tutorial: Deep Learning from Scratch       ║\n");
+    printf("║      CUDA Tutorial: Deep Learning from Scratch        ║\n");
     printf("╚═══════════════════════════════════════════════════════╝\n\n");
     
     srand(time(NULL));
@@ -1044,11 +1044,11 @@ int main(void) {
     printf("╔═══════════════════════════════════════════════════════╗\n");
     printf("║                    Key Takeaways                      ║\n");
     printf("╠═══════════════════════════════════════════════════════╣\n");
-    printf("║ 1. Linear regression: Simple gradient descent        ║\n");
-    printf("║ 2. Classification: Sigmoid/softmax activations       ║\n");
-    printf("║ 3. Neural networks: Layer-by-layer forward/backward  ║\n");
-    printf("║ 4. CNNs: Convolution + pooling for spatial features  ║\n");
-    printf("║ 5. GPU acceleration critical for deep learning       ║\n");
+    printf("║ 1. Linear regression: Simple gradient descent         ║\n");
+    printf("║ 2. Classification: Sigmoid/softmax activations        ║\n");
+    printf("║ 3. Neural networks: Layer-by-layer forward/backward   ║\n");
+    printf("║ 4. CNNs: Convolution + pooling for spatial features   ║\n");
+    printf("║ 5. GPU acceleration critical for deep learning        ║\n");
     printf("╚═══════════════════════════════════════════════════════╝\n\n");
     
     printf("Next Steps:\n");

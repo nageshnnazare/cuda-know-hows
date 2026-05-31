@@ -7,12 +7,13 @@ This is a comprehensive CUDA programming tutorial covering everything from basic
 ### What You'll Learn
 
 ```
-Basic Level          Intermediate Level       Advanced Level
-─────────────        ──────────────────       ──────────────
-✓ GPU Architecture   ✓ Matrix Operations      ✓ Streams
-✓ First Kernel       ✓ Shared Memory          ✓ Atomics  
-✓ Memory Model       ✓ Optimization           ✓ Dynamic Parallelism
-✓ Thread Indexing                             ✓ Profiling Tools
+Basic Level          Intermediate Level       Advanced Level        Modern CUDA
+─────────────        ──────────────────       ──────────────        ───────────
+✓ GPU Architecture   ✓ Matrix Operations      ✓ Streams             ✓ CUDA Graphs
+✓ First Kernel       ✓ Shared Memory          ✓ Atomics             ✓ Mixed Precision
+✓ Memory Model       ✓ Optimization           ✓ Dynamic Parallelism ✓ FP4/FP8
+✓ Thread Indexing                             ✓ Profiling Tools     ✓ CUDA Tile C++
+                                                                    ✓ Blackwell Arch
 ```
 
 ---
@@ -20,8 +21,8 @@ Basic Level          Intermediate Level       Advanced Level
 ## Prerequisites
 
 ✅ **Required:**
-- NVIDIA GPU (Compute Capability ≥ 3.0)
-- CUDA Toolkit installed
+- NVIDIA GPU (Compute Capability >= 7.0 recommended; >= 8.0 for all modern features)
+- CUDA Toolkit 12.6+ installed (13.3 recommended for CUDA Tile C++)
 - Basic C/C++ knowledge
 
 ✅ **Check Your Setup:**

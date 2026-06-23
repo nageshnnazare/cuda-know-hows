@@ -357,7 +357,8 @@ body.nav-condensed .nav-doc-title {
    look so every navbar icon matches. */
 .brand-toggle,
 .theme-toggle,
-.search-toggle {
+.search-toggle,
+.toc-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -378,7 +379,8 @@ body.nav-condensed .nav-doc-title {
 }
 .brand-toggle:hover,
 .theme-toggle:hover,
-.search-toggle:hover {
+.search-toggle:hover,
+.toc-toggle:hover {
     background: var(--ctrl-bg-hover);
     color: var(--accent);
     box-shadow: var(--ctrl-shadow-hover);
@@ -386,10 +388,12 @@ body.nav-condensed .nav-doc-title {
 }
 .brand-toggle:active,
 .theme-toggle:active,
-.search-toggle:active { transform: translateY(0) scale(0.94); }
+.search-toggle:active,
+.toc-toggle:active { transform: translateY(0) scale(0.94); }
 .brand-toggle .icon,
 .theme-toggle .icon,
-.search-toggle .icon { width: 17px; height: 17px; }
+.search-toggle .icon,
+.toc-toggle .icon { width: 17px; height: 17px; }
 
 /* The brand/sidebar toggle icon carries the brand accent color. */
 .brand-toggle { color: var(--accent); }
@@ -528,10 +532,9 @@ body.nav-condensed .nav-doc-title {
     min-height: 100vh;
 }
 
-/* === Sidebar nav ===
-   The sidebar spans the full viewport height (starting at the very top, behind
-   the transparent navbar) so its background meets the navbar with no seam, and
-   the navbar title sits visually on top of the sidebar when it's open. */
+/* === Sidebar nav (Left) & TOC (Right) ===
+   The sidebars span the full viewport height so their backgrounds meet the navbar
+   seamlessly. */
 .sidebar-nav {
     width: var(--sidebar-width);
     min-width: var(--sidebar-width);
@@ -561,6 +564,35 @@ body.nav-condensed .nav-doc-title {
     pointer-events: none;
 }
 
+.toc-sidebar {
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    background: var(--bg-sidebar);
+    border-left: 1px solid var(--border-main);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding-top: var(--header-height);
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-shrink: 0;
+    transition: width 0.2s, min-width 0.2s, padding 0.2s, opacity 0.2s, background 0.25s, border-color 0.25s;
+    z-index: 50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--bg-sidebar);
+}
+.toc-sidebar::-webkit-scrollbar { width: 5px; }
+.toc-sidebar::-webkit-scrollbar-track { background: var(--bg-sidebar); }
+.toc-sidebar::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+.toc-sidebar.collapsed {
+    width: 0;
+    min-width: 0;
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
 .nav-title {
     display: flex;
     align-items: center;
@@ -573,6 +605,52 @@ body.nav-condensed .nav-doc-title {
     padding: 14px 14px 6px;
 }
 .nav-title .icon { width: 13px; height: 13px; opacity: 0.85; }
+
+/* Directory Tree Structure Styling */
+.nav-dir-item {
+    list-style: none;
+    margin: 4px 0;
+}
+.nav-dir-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    color: var(--text-secondary);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    user-select: none;
+    transition: background 0.15s, color 0.15s;
+}
+.nav-dir-header:hover {
+    color: var(--text-primary);
+    background: var(--bg-code-block);
+}
+.nav-dir-header .chevron-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+    transition: transform 0.2s ease;
+}
+.nav-dir-header .folder-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--accent);
+}
+.nav-dir-children {
+    list-style: none;
+    margin-left: 12px;
+    padding-left: 6px;
+    border-left: 1px dashed var(--border-main);
+}
+.nav-dir-item:not(.expanded) > .nav-dir-children {
+    display: none;
+}
+.nav-dir-item.expanded > .nav-dir-header .chevron-icon {
+    transform: rotate(90deg);
+}
 
 .nav-list {
     list-style: none;
@@ -935,21 +1013,62 @@ body.nav-condensed .nav-doc-title {
 .tab-content blockquote p:last-child { margin-bottom: 0; }
 
 /* === Responsive === */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
     .brand { display: none; }
-    .content-area { padding: 20px 16px 64px; }
+    .content-area { padding: calc(var(--header-height) + 20px) 16px 64px; }
     .tab-content { padding: 26px 22px 40px; border-radius: var(--radius-md); }
     .search-widget input { width: 150px; }
     .search-widget input:focus { width: 200px; }
     .search-kbd { display: none; }
+
+    /* Sidebars overlay logic on tablets/mobile */
+    .sidebar-nav, .toc-sidebar {
+        position: fixed;
+        top: 0;
+        height: 100vh;
+        z-index: 150;
+        background: var(--bg-sidebar);
+        box-shadow: var(--shadow-lg);
+    }
+    .sidebar-nav {
+        left: 0;
+        border-right: 1px solid var(--border-main);
+    }
+    .toc-sidebar {
+        right: 0;
+        border-left: 1px solid var(--border-main);
+    }
+    
+    /* Backdrop when sidebar is active */
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 140;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
+    body:not(.sidebar-collapsed)::before,
+    body:not(.toc-collapsed)::before {
+        opacity: 1;
+        pointer-events: auto;
+    }
 }
 @media (max-width: 600px) {
     .doc-selector-label { display: none; }
+    .sidebar-nav, .toc-sidebar {
+        width: 80vw;
+        min-width: 80vw;
+    }
 }
 
 /* === Print === */
 @media print {
-    .header-bar, .sidebar-nav, .sidebar-toggle { display: none !important; }
+    .header-bar, .sidebar-nav, .toc-sidebar, .sidebar-toggle { display: none !important; }
     .tab-content { display: block !important; page-break-after: always; }
     body { background: white; color: #222; }
     .search-results { display: none !important; }
@@ -957,7 +1076,7 @@ body.nav-condensed .nav-doc-title {
 }
 </style>
 </head>
-<body data-theme="dark" class="sidebar-collapsed">
+<body data-theme="dark" class="sidebar-collapsed toc-collapsed">
 
 <div class="header-bar">
   <div class="header-inner" id="headerInner">
@@ -975,6 +1094,9 @@ body.nav-condensed .nav-doc-title {
         <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"></path></svg>
       </button>
       <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode (Ctrl+Shift+L)" aria-label="Toggle theme"></button>
+      <button class="toc-toggle" id="tocToggle" title="Toggle table of contents (Ctrl+I)" aria-label="Toggle table of contents">
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm3.75-1.5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Zm0 5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5ZM2 9a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1 4a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm2.75-.5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Z"></path></svg>
+      </button>
     </div>
     <div class="nav-doc-title" id="navDocTitle" aria-hidden="true"></div>
   </div>
@@ -1001,6 +1123,11 @@ body.nav-condensed .nav-doc-title {
       </div>
       <ul class="nav-list" id="docList"></ul>
     </div>
+  </nav>
+  <div class="content-area">
+    <div id="tabPanels"></div>
+  </div>
+  <nav class="toc-sidebar collapsed" id="tocSidebar">
     <div class="sidebar-section" id="tocSection">
       <div class="nav-title">
         <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.75 2.5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Zm0 5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Zm0 5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5ZM2 14a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-6a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM2 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>
@@ -1009,9 +1136,6 @@ body.nav-condensed .nav-doc-title {
       <ul class="nav-list" id="navList"></ul>
     </div>
   </nav>
-  <div class="content-area">
-    <div id="tabPanels"></div>
-  </div>
 </div>
 
 <script>
@@ -25906,24 +26030,20 @@ const tabPanels = document.getElementById('tabPanels');
 const navDocTitle = document.getElementById('navDocTitle');
 let navLastY = 0;
 
+// Prettify function in JS (matching Python's prettify)
+function prettify(component) {
+    let c = component.replace(/^[0-9]+[_-]/, '');
+    c = c.replace(/_/g, ' ').replace(/-/g, ' ').trim();
+    if (c.toLowerCase() === 'readme') return 'README';
+    if (c.toLowerCase() === 'cheatsheet') return 'Cheatsheet';
+    return c.replace(/\b\w/g, l => l.toUpperCase());
+}
+
 TAB_DATA.forEach((tab, idx) => {
     const opt = document.createElement('option');
     opt.value = String(idx);
     opt.textContent = tab.name;
     docSelect.appendChild(opt);
-
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.href = '#tab-' + idx;
-    a.textContent = tab.name;
-    a.title = tab.name;
-    a.dataset.docIdx = String(idx);
-    a.addEventListener('click', function(e) {
-        e.preventDefault();
-        activateTab(idx);
-    });
-    li.appendChild(a);
-    docList.appendChild(li);
 
     const panel = document.createElement('div');
     panel.className = 'tab-content';
@@ -25932,6 +26052,96 @@ TAB_DATA.forEach((tab, idx) => {
     panel.innerHTML = tab.body;
     tabPanels.appendChild(panel);
 });
+
+// Build directory tree structure
+const docTree = { files: [], dirs: {} };
+TAB_DATA.forEach((tab, idx) => {
+    const parts = (tab.path || '').split('/');
+    let current = docTree;
+    for (let i = 0; i < parts.length - 1; i++) {
+        const dirName = parts[i];
+        if (!current.dirs[dirName]) {
+            current.dirs[dirName] = { files: [], dirs: {} };
+        }
+        current = current.dirs[dirName];
+    }
+    current.files.push({ tab, idx });
+});
+
+// Build HTML from tree
+function createTreeHtml(node, parentPath = '') {
+    const ul = document.createElement('ul');
+    ul.className = 'nav-list';
+    
+    // Sort directories and add them
+    Object.keys(node.dirs).sort().forEach(dirName => {
+        const dirNode = node.dirs[dirName];
+        const li = document.createElement('li');
+        li.className = 'nav-dir-item expanded'; // expanded by default
+        
+        const header = document.createElement('div');
+        header.className = 'nav-dir-header';
+        
+        const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        chevron.setAttribute('class', 'icon chevron-icon');
+        chevron.setAttribute('viewBox', '0 0 16 16');
+        chevron.innerHTML = '<path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06Z"></path>';
+        
+        const folder = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        folder.setAttribute('class', 'icon folder-icon');
+        folder.setAttribute('viewBox', '0 0 16 16');
+        folder.innerHTML = '<path d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.58L6.06 1.48A1.75 1.75 0 0 0 4.81 1H1.75Zm0 1.5h3.06c.2 0 .39.08.53.22L6.873 4.25H14.25a.25.25 0 0 1 .25.25v8.5a.25.25 0 0 1-.25.25H1.75a.25.25 0 0 1-.25-.25v-10.5a.25.25 0 0 1 .25-.25Z"></path>';
+        
+        const label = document.createElement('span');
+        label.className = 'dir-name';
+        label.textContent = prettify(dirName);
+        
+        header.appendChild(chevron);
+        header.appendChild(folder);
+        header.appendChild(label);
+        li.appendChild(header);
+        
+        const childrenContainer = createTreeHtml(dirNode, parentPath ? parentPath + '/' + dirName : dirName);
+        childrenContainer.className = 'nav-dir-children';
+        li.appendChild(childrenContainer);
+        
+        header.addEventListener('click', (e) => {
+            e.stopPropagation();
+            li.classList.toggle('expanded');
+        });
+        
+        ul.appendChild(li);
+    });
+    
+    // Sort and add files
+    node.files.forEach(({ tab, idx }) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = '#tab-' + idx;
+        
+        // Use the basename or prettified name without numbers
+        const baseName = tab.path.split('/').pop() || tab.name;
+        let displayName = baseName.replace(/\.[a-zA-Z0-9]+$/, '');
+        displayName = prettify(displayName);
+        
+        a.textContent = displayName;
+        a.title = tab.name;
+        a.dataset.docIdx = String(idx);
+        a.addEventListener('click', function(e) {
+            e.preventDefault();
+            activateTab(idx);
+        });
+        li.appendChild(a);
+        ul.appendChild(li);
+    });
+    
+    return ul;
+}
+
+const treeHtml = createTreeHtml(docTree);
+while (treeHtml.firstChild) {
+    docList.appendChild(treeHtml.firstChild);
+}
 
 /* ───── Cross-document link resolution (supports nested folders) ─────
    Docs may live in sub-directories and link to each other with relative
@@ -26136,6 +26346,23 @@ function activateTab(idx, resetScroll) {
     docList.querySelectorAll('a').forEach(a => {
         a.classList.toggle('nav-doc-active', parseInt(a.dataset.docIdx, 10) === idx);
     });
+    const activeLink = docList.querySelector(`a[data-doc-idx="${idx}"]`);
+    if (activeLink) {
+        let parent = activeLink.closest('.nav-dir-item');
+        while (parent) {
+            parent.classList.add('expanded');
+            parent = parent.parentElement.closest('.nav-dir-item');
+        }
+    }
+    if (window.innerWidth <= 1024) {
+        sidebarNav.classList.add('collapsed');
+        document.body.classList.add('sidebar-collapsed');
+        const tSidebar = document.getElementById('tocSidebar');
+        if (tSidebar) {
+            tSidebar.classList.add('collapsed');
+            document.body.classList.add('toc-collapsed');
+        }
+    }
     history.replaceState(null, null, '#tab-' + idx);
     if (typeof buildToc === 'function') buildToc(idx);
     // Reflect the active document's title in the condensing navbar.
@@ -26476,17 +26703,50 @@ function updateNavCondense() {
 }
 window.addEventListener('scroll', updateNavCondense, { passive: true });
 
+const tocSidebar = document.getElementById('tocSidebar');
+const tocToggle = document.getElementById('tocToggle');
+
 function toggleSidebar() {
     const collapsed = sidebarNav.classList.toggle('collapsed');
     document.body.classList.toggle('sidebar-collapsed', collapsed);
+    if (!collapsed && window.innerWidth <= 1024) {
+        tocSidebar.classList.add('collapsed');
+        document.body.classList.add('toc-collapsed');
+    }
+}
+
+function toggleToc() {
+    const collapsed = tocSidebar.classList.toggle('collapsed');
+    document.body.classList.toggle('toc-collapsed', collapsed);
+    if (!collapsed && window.innerWidth <= 1024) {
+        sidebarNav.classList.add('collapsed');
+        document.body.classList.add('sidebar-collapsed');
+    }
 }
 
 sidebarToggle.addEventListener('click', toggleSidebar);
+tocToggle.addEventListener('click', toggleToc);
+
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 1024) {
+        if (!sidebarNav.contains(e.target) && !tocSidebar.contains(e.target) &&
+            !sidebarToggle.contains(e.target) && !tocToggle.contains(e.target)) {
+            sidebarNav.classList.add('collapsed');
+            document.body.classList.add('sidebar-collapsed');
+            tocSidebar.classList.add('collapsed');
+            document.body.classList.add('toc-collapsed');
+        }
+    }
+});
 
 document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'b' && !overlay.classList.contains('open')) {
         e.preventDefault();
         toggleSidebar();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'i' && !overlay.classList.contains('open')) {
+        e.preventDefault();
+        toggleToc();
     }
 });
 

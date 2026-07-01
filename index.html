@@ -19,6 +19,7 @@
 :root {
     --header-height: 56px;
     --sidebar-width: 280px;
+    /* Let the document fill the available width (no wasted screen real-estate). */
     --content-max: none;
 
     --font-sans: "Inter", -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -39,15 +40,21 @@
     --glass-tint: rgba(20,22,30,0.30);
     --glass-border: rgba(255,255,255,0.10);
     --glass-highlight: rgba(255,255,255,0.14);
-    --glass-sheen: rgba(255,255,255,0.07);
     --glass-shadow: 0 10px 30px rgba(0,0,0,0.45);
     --glass-blur: 22px;
-    /* Floating glass controls (dark) */
-    --ctrl-bg: rgba(255,255,255,0.07);
-    --ctrl-bg-hover: rgba(255,255,255,0.16);
-    --ctrl-border: rgba(255,255,255,0.16);
-    --ctrl-shadow: 0 2px 8px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.14);
-    --ctrl-shadow-hover: 0 6px 16px rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.22);
+    /* Shared liquid-glass backdrop filter: moderate blur + saturation so the
+       page behind shows through (transparent), Apple-style, without a milky fill. */
+    --glass-filter: blur(18px) saturate(200%);
+    /* Floating glass controls (dark) -- transparent, the blur does the work. */
+    --ctrl-bg: rgba(255,255,255,0.04);
+    --ctrl-bg-hover: rgba(255,255,255,0.09);
+    --ctrl-border: rgba(255,255,255,0.12);
+    --ctrl-shadow: 0 4px 18px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.18);
+    --ctrl-shadow-hover: 0 8px 26px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.26);
+    /* Light-catching rim gradient: a single highlight on the top-left diagonal
+       edge that fades to nothing before reaching the opposite side -- the
+       asymmetric, Apple-style refractive glass edge. */
+    --glass-rim: linear-gradient(135deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 16%, rgba(255,255,255,0) 42%);
     --bg-sidebar: #0e1016;
     --bg-content: #0b0d12;
     --bg-code-block: #14161f;
@@ -96,6 +103,15 @@
     --nav-doc-active-bg: var(--accent);
     --nav-doc-active-fg: #0a0f17;
     --scrollbar-thumb: #2a2e40;
+
+    /* Diagram (```diagram) box accent palette */
+    --d-blue: #5aa2f0;
+    --d-green: #56c98a;
+    --d-orange: #e0a23c;
+    --d-red: #e8666f;
+    --d-purple: #b58cf0;
+    --d-teal: #45c4c4;
+    --d-gray: #9aa0b4;
 }
 
 [data-theme="light"] {
@@ -110,15 +126,18 @@
     --glass-tint: rgba(255,255,255,0.35);
     --glass-border: rgba(255,255,255,0.65);
     --glass-highlight: rgba(255,255,255,0.85);
-    --glass-sheen: rgba(255,255,255,0.55);
     --glass-shadow: 0 10px 30px rgba(16,24,40,0.12);
     --glass-blur: 22px;
-    /* Floating glass controls (light) */
-    --ctrl-bg: rgba(255,255,255,0.6);
-    --ctrl-bg-hover: rgba(255,255,255,0.92);
-    --ctrl-border: rgba(16,24,40,0.10);
-    --ctrl-shadow: 0 2px 8px rgba(16,24,40,0.12), inset 0 1px 0 rgba(255,255,255,0.85);
-    --ctrl-shadow-hover: 0 6px 16px rgba(16,24,40,0.18), inset 0 1px 0 rgba(255,255,255,0.95);
+    --glass-filter: blur(18px) saturate(190%);
+    /* Floating glass controls (light) -- transparent, the blur does the work. */
+    --ctrl-bg: rgba(255,255,255,0.35);
+    --ctrl-bg-hover: rgba(255,255,255,0.55);
+    --ctrl-border: rgba(255,255,255,0.6);
+    --ctrl-shadow: 0 4px 18px rgba(16,24,40,0.10), inset 0 1px 0 rgba(255,255,255,0.8);
+    --ctrl-shadow-hover: 0 8px 26px rgba(16,24,40,0.16), inset 0 1px 0 rgba(255,255,255,0.95);
+    /* Light-catching rim gradient: brightest at the top-left/bottom-right
+       corners, dimmer along the edges -- a refractive glass edge. */
+    --glass-rim: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.3) 16%, rgba(255,255,255,0) 42%);
     --bg-sidebar: #ffffff;
     --bg-content: #ffffff;
     --bg-code-block: #f4f5fa;
@@ -167,12 +186,34 @@
     --nav-doc-active-bg: var(--accent);
     --nav-doc-active-fg: #ffffff;
     --scrollbar-thumb: #d0d4e2;
+
+    /* Diagram (```diagram) box accent palette (darker for light bg contrast) */
+    --d-blue: #1f6fc4;
+    --d-green: #2f8f52;
+    --d-orange: #c1771f;
+    --d-red: #d23f4a;
+    --d-purple: #7d4fd0;
+    --d-teal: #1f8a8a;
+    --d-gray: #6a7187;
 }
 
 /* === Reset & base === */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { color-scheme: dark; scroll-behavior: smooth; }
+html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    /* Honour the device safe-area (notch / home indicator) on iOS. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* Hide the browser's main page scrollbar (right + bottom) while keeping
+       the page fully scrollable. Per-component scrollbars (sidebars, code
+       blocks, tables) keep their own styled thin scrollbars. */
+    scrollbar-width: none;        /* Firefox */
+    -ms-overflow-style: none;     /* legacy Edge/IE */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar { width: 0; height: 0; display: none; }  /* WebKit/Blink */
 [data-theme="light"] { color-scheme: light; }
 
 body {
@@ -184,6 +225,8 @@ body {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     transition: background 0.25s, color 0.25s;
+    /* Never let wide code/tables push the whole page sideways on small screens. */
+    overflow-x: hidden;
 }
 
 ::selection { background: var(--accent-strong); }
@@ -237,29 +280,51 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-weight: 700;
-    font-size: 14px;
+    /* Keep this perfectly in sync with .doc-select so the title looks identical
+       whether it is shown in the picker or floating in the condensed navbar. */
+    font-weight: 600;
+    font-size: 13px;
     letter-spacing: -0.01em;
     color: var(--text-primary);
     background: var(--ctrl-bg);
     border: 1px solid var(--ctrl-border);
     box-shadow: var(--ctrl-shadow);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: var(--glass-filter);
+    backdrop-filter: var(--glass-filter);
     padding: 7px 18px;
     border-radius: 999px;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.28s ease, transform 0.28s ease;
+    transition: opacity 0.4s cubic-bezier(0.32,0.72,0,1), transform 0.4s cubic-bezier(0.32,0.72,0,1);
 }
 
 /* Smoothly fade/lift the menu items in and out as the bar condenses. */
 .brand-name, .doc-selector, .search-widget {
-    transition: opacity 0.25s ease, transform 0.25s ease;
+    transition: opacity 0.4s cubic-bezier(0.32,0.72,0,1), transform 0.4s cubic-bezier(0.32,0.72,0,1);
 }
 
-/* Condensed: keep the toggle icon, drop the collection name + menu items,
-   and reveal the centered document title. */
+/* Apple-style entrance for the navbar controls when the page first loads:
+   a soft fade with a gentle scale-up (no sliding). `backwards` keeps them
+   hidden during their delay but reverts to normal afterwards so the condense
+   transitions above keep working. */
+@keyframes nav-pop-in {
+    from { opacity: 0; transform: scale(0.94); }
+    to   { opacity: 1; transform: none; }
+}
+.brand, .doc-selector, .search-widget {
+    animation: nav-pop-in 0.6s cubic-bezier(0.32, 0.72, 0, 1) backwards;
+}
+.brand         { animation-delay: 0.04s; }
+.doc-selector  { animation-delay: 0.10s; }
+.search-widget { animation-delay: 0.16s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .brand, .doc-selector, .search-widget { animation: none; }
+}
+
+/* Condensed: keep the sidebar toggle icon, drop the back button, collection
+   name + menu items, and reveal the centered document title. */
+body.nav-condensed .nav-back,
 body.nav-condensed .brand-name,
 body.nav-condensed .doc-selector,
 body.nav-condensed .search-widget {
@@ -303,6 +368,8 @@ body.nav-condensed .nav-doc-title {
     gap: 8px;
     min-width: 0;
     flex-shrink: 1;
+    /* Push the picker to the right so it sits alongside the navbar buttons. */
+    margin-left: auto;
 }
 
 .doc-selector-label {
@@ -323,13 +390,16 @@ body.nav-condensed .nav-doc-title {
     background: var(--ctrl-bg);
     border: 1px solid var(--ctrl-border);
     box-shadow: var(--ctrl-shadow);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: var(--glass-filter);
+    backdrop-filter: var(--glass-filter);
     color: var(--text-primary);
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
-    padding: 7px 30px 7px 14px;
+    /* Match the 36px height of the navbar icon buttons exactly. */
+    box-sizing: border-box;
+    height: 36px;
+    padding: 0 30px 0 14px;
     border-radius: 999px;
     outline: none;
     cursor: pointer;
@@ -338,7 +408,9 @@ body.nav-condensed .nav-doc-title {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    transition: border-color 0.15s, background 0.2s, color 0.25s, box-shadow 0.2s, transform 0.15s;
+    /* Transition only background-color (not the `background` shorthand) so the
+       chevron icon never fades/slides on hover. Apple-style easing. */
+    transition: border-color 0.3s ease, background-color 0.3s cubic-bezier(0.32,0.72,0,1), color 0.25s ease, box-shadow 0.3s cubic-bezier(0.32,0.72,0,1), transform 0.3s cubic-bezier(0.32,0.72,0,1);
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M3 4.5L6 7.5L9 4.5'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -346,66 +418,168 @@ body.nav-condensed .nav-doc-title {
 }
 
 .doc-select:hover {
-    background: var(--ctrl-bg-hover);
+    background-color: var(--ctrl-bg-hover);
     box-shadow: var(--ctrl-shadow-hover);
-    transform: translateY(-1px);
+    transform: scale(1.02);
 }
+.doc-select:active { transform: scale(0.98); }
 .doc-select:focus { border-color: var(--accent); }
 
 /* === Floating circular icon buttons (Apple-style) ===
    The title/sidebar toggle, theme toggle and search button share one identical
    look so every navbar icon matches. */
 .brand-toggle,
+.nav-back,
 .theme-toggle,
 .search-toggle,
-.toc-toggle {
+.toc-toggle,
+.doc-nav {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
+    /* A 36px-tall pill: with no label it stays square (=> circle via the big
+       radius); on hover it grows to fit the text label. */
+    min-width: 36px;
     height: 36px;
     padding: 0;
-    border-radius: 50%;
+    border-radius: 999px;
     background: var(--ctrl-bg);
     border: 1px solid var(--ctrl-border);
     box-shadow: var(--ctrl-shadow);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: var(--glass-filter);
+    backdrop-filter: var(--glass-filter);
     color: var(--text-secondary);
     cursor: pointer;
     font-size: 16px;
     flex-shrink: 0;
-    transition: background 0.2s, color 0.15s, border-color 0.25s, box-shadow 0.2s, transform 0.15s;
+    position: relative;
+    /* Apple-style easing: gentle, no overshoot. */
+    transition: background 0.3s cubic-bezier(0.32,0.72,0,1), color 0.2s ease, border-color 0.3s ease, box-shadow 0.3s cubic-bezier(0.32,0.72,0,1), transform 0.3s cubic-bezier(0.32,0.72,0,1), opacity 0.2s ease, padding 0.34s cubic-bezier(0.32,0.72,0,1);
 }
+/* Refractive liquid-glass rim: a bright, light-catching highlight that traces
+   the edges and corners of each button. Built as a gradient "border" using the
+   mask-compositing trick so only the 1px ring is painted. */
+.brand-toggle::after,
+.nav-back::after,
+.theme-toggle::after,
+.search-toggle::after,
+.toc-toggle::after,
+.doc-nav::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--glass-rim);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.7;
+    transition: opacity 0.3s cubic-bezier(0.32,0.72,0,1);
+}
+.brand-toggle:hover::after,
+.nav-back:hover::after,
+.theme-toggle:hover::after,
+.search-toggle:hover::after,
+.toc-toggle:hover::after,
+.doc-nav:hover::after { opacity: 0.95; }
 .brand-toggle:hover,
+.nav-back:hover,
 .theme-toggle:hover,
 .search-toggle:hover,
-.toc-toggle:hover {
+.toc-toggle:hover,
+.doc-nav:hover {
     background: var(--ctrl-bg-hover);
     color: var(--accent);
     box-shadow: var(--ctrl-shadow-hover);
-    transform: translateY(-1px);
+}
+/* Hover-to-expand pill: only buttons that actually contain a .btn-label child
+   widen on hover. Removing the <span class="btn-label"> from a button's markup
+   disables its expansion while keeping all of this styling intact. */
+.brand-toggle:has(.btn-label):hover,
+.nav-back:has(.btn-label):hover,
+.theme-toggle:has(.btn-label):hover,
+.search-toggle:has(.btn-label):hover,
+.toc-toggle:has(.btn-label):hover,
+.doc-nav:has(.btn-label):hover {
+    padding: 0 14px;
 }
 .brand-toggle:active,
+.nav-back:active,
 .theme-toggle:active,
 .search-toggle:active,
-.toc-toggle:active { transform: translateY(0) scale(0.94); }
+.toc-toggle:active,
+.doc-nav:active { transform: scale(0.94); }
 .brand-toggle .icon,
+.nav-back .icon,
 .theme-toggle .icon,
 .search-toggle .icon,
-.toc-toggle .icon { width: 17px; height: 17px; }
+.toc-toggle .icon,
+.doc-nav .icon { width: 17px; height: 17px; }
 
-/* The brand/sidebar toggle icon carries the brand accent color. */
+/* === Hover-to-expand button labels === */
+.btn-label {
+    display: inline-block;
+    max-width: 0;
+    opacity: 0;
+    margin-left: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    transition: max-width 0.36s cubic-bezier(0.32,0.72,0,1),
+                opacity 0.28s ease,
+                margin-left 0.36s cubic-bezier(0.32,0.72,0,1);
+}
+.brand-toggle:hover .btn-label,
+.nav-back:hover .btn-label,
+.theme-toggle:hover .btn-label,
+.search-toggle:hover .btn-label,
+.toc-toggle:hover .btn-label,
+.doc-nav:hover .btn-label {
+    max-width: 120px;
+    opacity: 1;
+    margin-left: 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .btn-label { transition: none; }
+}
+
+/* Navbar button groups: prev/next live in their own wrapper, the search/theme/
+   TOC tools in another, so the two clusters are visually distinct. */
+.nav-btn-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* History-back and the prev/next buttons dim + disable when there is nowhere
+   to go (start/end of the collection, or no navigation history yet). */
+.nav-back:disabled,
+.doc-nav:disabled {
+    opacity: 0.32;
+    cursor: default;
+    pointer-events: none;
+    box-shadow: var(--ctrl-shadow);
+    transform: none;
+}
+
+/* The brand/sidebar toggle icon carries the brand accent color. It stays a
+   fixed circular branding mark and does NOT expand into a labelled pill. */
 .brand-toggle { color: var(--accent); }
-.brand-toggle:hover { color: var(--text-link-hover); }
+.brand-toggle:hover { color: var(--text-link-hover); padding: 0; }
 
 /* === Search widget === */
 .search-widget {
-    margin-left: auto;
     padding: 0;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 14px;          /* larger gap separates the two button groups */
     flex-shrink: 0;
 }
 
@@ -416,6 +590,8 @@ body.nav-condensed .nav-doc-title {
     background: var(--ctrl-bg);
     border: 1px solid var(--ctrl-border);
     box-shadow: var(--ctrl-shadow);
+    -webkit-backdrop-filter: var(--glass-filter);
+    backdrop-filter: var(--glass-filter);
     border-radius: 999px;
     padding: 3px 9px;
     line-height: 1.4;
@@ -436,7 +612,7 @@ body.nav-condensed .nav-doc-title {
     background: var(--bg-search-overlay-inner);
     border: 1px solid var(--border-header);
     border-radius: 8px;
-    width: 720px;
+    width: min(720px, 94vw);
     max-height: 70vh;
     display: flex;
     flex-direction: column;
@@ -658,6 +834,33 @@ body.nav-condensed .nav-doc-title {
     margin: 0;
 }
 
+/* Apple-style fade-in for the navigation entries each time a sidebar opens. */
+@keyframes nav-item-in {
+    from { opacity: 0; transform: scale(0.98); }
+    to   { opacity: 1; transform: none; }
+}
+/* Both sidebars share the exact same entrance. The left "Documents" tree nests
+   its file entries inside .nav-dir-children (not .nav-list), so it must be
+   covered too -- otherwise nested items wouldn't animate and the two sidebars
+   would look mismatched. */
+.sidebar-nav:not(.collapsed) .nav-list > li,
+.sidebar-nav:not(.collapsed) .nav-dir-children > li,
+.toc-sidebar:not(.collapsed) .nav-list > li {
+    animation: nav-item-in 0.4s cubic-bezier(0.32, 0.72, 0, 1) backwards;
+}
+.nav-list > li:nth-child(1), .nav-dir-children > li:nth-child(1) { animation-delay: 0.02s; }
+.nav-list > li:nth-child(2), .nav-dir-children > li:nth-child(2) { animation-delay: 0.05s; }
+.nav-list > li:nth-child(3), .nav-dir-children > li:nth-child(3) { animation-delay: 0.08s; }
+.nav-list > li:nth-child(4), .nav-dir-children > li:nth-child(4) { animation-delay: 0.11s; }
+.nav-list > li:nth-child(5), .nav-dir-children > li:nth-child(5) { animation-delay: 0.14s; }
+.nav-list > li:nth-child(6), .nav-dir-children > li:nth-child(6) { animation-delay: 0.17s; }
+.nav-list > li:nth-child(n+7), .nav-dir-children > li:nth-child(n+7) { animation-delay: 0.2s; }
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-nav:not(.collapsed) .nav-list > li,
+    .sidebar-nav:not(.collapsed) .nav-dir-children > li,
+    .toc-sidebar:not(.collapsed) .nav-list > li { animation: none; }
+}
+
 .nav-list a {
     display: block;
     padding: 3px 10px;
@@ -725,12 +928,242 @@ body.nav-condensed .nav-doc-title {
     box-shadow: var(--shadow-sm);
     transition: background 0.25s, border-color 0.25s;
 }
-.tab-content.active { display: block; animation: fade-in 0.28s ease; }
+.tab-content.active { display: block; animation: fade-in 0.45s cubic-bezier(0.32, 0.72, 0, 1); }
 
 @keyframes fade-in {
-    from { opacity: 0; transform: translateY(6px); }
+    from { opacity: 0; transform: scale(0.99); }
     to   { opacity: 1; transform: none; }
 }
+
+/* === Reading progress bar (top of viewport) === */
+.read-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    width: 0;
+    background: linear-gradient(90deg, var(--accent), var(--text-link-hover));
+    z-index: 120;
+    pointer-events: none;
+    /* width is set imperatively; keep the easing tiny so it tracks the scroll. */
+    transition: width 0.08s linear;
+}
+
+/* === Skip-to-content (keyboard / screen-reader) === */
+.skip-link {
+    position: fixed;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-150%);
+    z-index: 300;
+    background: var(--accent);
+    color: var(--nav-doc-active-fg);
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+}
+.skip-link:focus { transform: translateX(-50%) translateY(0); }
+
+/* === Doc meta line (breadcrumb + reading time) === */
+.doc-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin-bottom: 22px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.doc-breadcrumb { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.doc-breadcrumb .crumb-sep { opacity: 0.5; }
+.doc-reading-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: auto;
+    white-space: nowrap;
+}
+.doc-reading-time .icon { width: 13px; height: 13px; }
+
+/* === Back-to-top floating button === */
+.to-top {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--ctrl-bg);
+    border: 1px solid var(--ctrl-border);
+    box-shadow: var(--ctrl-shadow);
+    -webkit-backdrop-filter: var(--glass-filter);
+    backdrop-filter: var(--glass-filter);
+    color: var(--text-secondary);
+    cursor: pointer;
+    z-index: 110;
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.32,0.72,0,1), transform 0.3s cubic-bezier(0.32,0.72,0,1), color 0.2s, background 0.2s;
+}
+.to-top.show { opacity: 1; transform: none; pointer-events: auto; }
+.to-top:hover { color: var(--accent); background: var(--ctrl-bg-hover); }
+.to-top:active { transform: scale(0.92); }
+.to-top .icon { width: 18px; height: 18px; }
+
+/* === Heading permalink anchors === */
+.tab-content .heading-anchor {
+    position: relative;
+    opacity: 0;
+    margin-left: 8px;
+    font-size: 0.8em;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-bottom: none;
+    cursor: pointer;
+    transition: opacity 0.15s, color 0.15s;
+}
+.tab-content h1:hover .heading-anchor,
+.tab-content h2:hover .heading-anchor,
+.tab-content h3:hover .heading-anchor,
+.tab-content h4:hover .heading-anchor { opacity: 0.7; }
+.tab-content .heading-anchor:hover { opacity: 1; color: var(--accent); background: none; }
+
+/* "Link copied" confirmation bubble shown after clicking a permalink. */
+.tab-content .heading-anchor.copied { opacity: 1; color: var(--text-heading-h4); }
+.tab-content .heading-anchor.copied::after {
+    content: "Link copied";
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 6px);
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: var(--nav-doc-active-fg);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0;
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: var(--shadow-md);
+    animation: anchor-tip 1.4s ease forwards;
+}
+@keyframes anchor-tip {
+    0%      { opacity: 0; transform: translateX(-50%) translateY(4px); }
+    12%, 78% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100%    { opacity: 0; transform: translateX(-50%) translateY(-3px); }
+}
+
+/* === Callouts / admonitions (built at conversion time) === */
+.callout {
+    margin: 18px 0;
+    padding: 12px 16px 12px 14px;
+    border: 1px solid var(--border-main);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    background: var(--bg-blockquote);
+}
+.callout-title {
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    margin-bottom: 4px;
+    color: var(--accent);
+}
+.callout-body > :first-child { margin-top: 0; }
+.callout-body > :last-child { margin-bottom: 0; }
+.callout-note      { border-left-color: var(--text-link);     }
+.callout-note .callout-title    { color: var(--text-link);     }
+.callout-tip       { border-left-color: var(--text-heading-h4); }
+.callout-tip .callout-title     { color: var(--text-heading-h4); }
+.callout-important { border-left-color: var(--text-heading-h3); }
+.callout-important .callout-title { color: var(--text-heading-h3); }
+.callout-warning   { border-left-color: var(--text-heading-h2); }
+.callout-warning .callout-title { color: var(--text-heading-h2); }
+.callout-caution   { border-left-color: #e0555f; }
+.callout-caution .callout-title { color: #e0555f; }
+
+/* === Diagrams (```diagram blocks, rendered to nested boxes at build time) === */
+.diagram {
+    margin: 22px 0;
+    padding: 24px 24px 28px;
+    border: 1px solid var(--border-main);
+    border-radius: var(--radius-lg, 16px);
+    background: linear-gradient(180deg, rgba(127,127,127,0.04), transparent);
+}
+.diagram-title {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+/* A titled box. Title sits on the top border like a fieldset legend. */
+.dbox {
+    position: relative;
+    border: 1.5px solid var(--dbox-color, var(--border-main));
+    border-radius: 13px;
+    padding: 20px 20px 18px;
+    margin-top: 22px;
+    background: var(--dbox-fill, rgba(127,127,127,0.03));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), var(--shadow-md);
+}
+.dbox:first-child { margin-top: 4px; }
+.dbox > .dbox-title {
+    position: absolute;
+    top: -9px;
+    left: 18px;
+    padding: 1px 10px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--dbox-color, var(--text-primary));
+    background: var(--bg-content);
+}
+.dbox.dashed { border-style: dashed; }
+.dtext {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 8px 0;
+}
+.dtext:first-of-type { margin-top: 4px; }
+.dtext:last-child { margin-bottom: 0; }
+.dtext b { color: var(--text-primary); font-weight: 700; }
+.dtext code, .dbox-title code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    background: var(--bg-code-inline);
+    padding: 1px 5px;
+    border-radius: 5px;
+}
+/* color variants drive both border + legend via a single custom property */
+.dbox.blue   { --dbox-color: var(--d-blue);   --dbox-fill: color-mix(in srgb, var(--d-blue) 7%, transparent); }
+.dbox.green  { --dbox-color: var(--d-green);  --dbox-fill: color-mix(in srgb, var(--d-green) 7%, transparent); }
+.dbox.orange { --dbox-color: var(--d-orange); --dbox-fill: color-mix(in srgb, var(--d-orange) 7%, transparent); }
+.dbox.red    { --dbox-color: var(--d-red);    --dbox-fill: color-mix(in srgb, var(--d-red) 7%, transparent); }
+.dbox.purple { --dbox-color: var(--d-purple); --dbox-fill: color-mix(in srgb, var(--d-purple) 7%, transparent); }
+.dbox.teal   { --dbox-color: var(--d-teal);   --dbox-fill: color-mix(in srgb, var(--d-teal) 7%, transparent); }
+.dbox.gray   { --dbox-color: var(--d-gray);   --dbox-fill: color-mix(in srgb, var(--d-gray) 7%, transparent); }
+
+/* === Visible keyboard focus rings === */
+/* Keyboard focus ring. Do NOT set border-radius here -- modern browsers round
+   the outline to the element's own radius, and forcing a radius would square
+   off the pill-shaped document selector when focused. */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+.doc-select:focus-visible, .nav-list a:focus-visible { outline-offset: 1px; }
 
 /* === Headings === */
 .tab-content h1, .tab-content h2, .tab-content h3,
@@ -992,6 +1425,20 @@ body.nav-condensed .nav-doc-title {
 }
 .tab-content tbody tr:hover td { background: var(--accent-soft); }
 
+/* Tables are wrapped (via JS) in a scroll container so wide tables never blow
+   out the layout; on narrow screens they scroll horizontally instead. */
+.table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 18px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+.table-scroll::-webkit-scrollbar { height: 8px; }
+.table-scroll::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+.table-scroll > table { margin: 0; }
+
 /* === Horizontal rules === */
 .tab-content hr {
     border: none;
@@ -1013,15 +1460,24 @@ body.nav-condensed .nav-doc-title {
 .tab-content blockquote p:last-child { margin-bottom: 0; }
 
 /* === Responsive === */
+
+/* Media never overflows its container. */
+.tab-content img,
+.tab-content video,
+.tab-content svg { max-width: 100%; height: auto; }
+
+/* ---- Tablets & iPad (portrait + landscape): sidebars become overlay drawers ---- */
 @media (max-width: 1024px) {
-    .brand { display: none; }
-    .content-area { padding: calc(var(--header-height) + 20px) 16px 64px; }
+    /* Keep the sidebar toggle reachable; just drop the long collection title so
+       the controls fit. The condensed title still names the current doc. */
+    .brand-name { display: none; }
+    .brand { margin-right: 0; }
+
+    .content-area { padding: calc(var(--header-height) + 18px) 20px 64px; }
     .tab-content { padding: 26px 22px 40px; border-radius: var(--radius-md); }
-    .search-widget input { width: 150px; }
-    .search-widget input:focus { width: 200px; }
     .search-kbd { display: none; }
 
-    /* Sidebars overlay logic on tablets/mobile */
+    /* Sidebars float over the content instead of squeezing it. */
     .sidebar-nav, .toc-sidebar {
         position: fixed;
         top: 0;
@@ -1030,21 +1486,15 @@ body.nav-condensed .nav-doc-title {
         background: var(--bg-sidebar);
         box-shadow: var(--shadow-lg);
     }
-    .sidebar-nav {
-        left: 0;
-        border-right: 1px solid var(--border-main);
-    }
-    .toc-sidebar {
-        right: 0;
-        border-left: 1px solid var(--border-main);
-    }
-    
-    /* Backdrop when sidebar is active */
+    .sidebar-nav { left: 0; border-right: 1px solid var(--border-main); }
+    .toc-sidebar { right: 0; border-left: 1px solid var(--border-main); }
+
+    /* Dimmed, blurred backdrop while either drawer is open. */
     body::before {
         content: "";
         position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.4);
+        inset: 0;
+        background: rgba(0,0,0,0.45);
         backdrop-filter: blur(4px);
         -webkit-backdrop-filter: blur(4px);
         z-index: 140;
@@ -1058,12 +1508,74 @@ body.nav-condensed .nav-doc-title {
         pointer-events: auto;
     }
 }
-@media (max-width: 600px) {
-    .doc-selector-label { display: none; }
-    .sidebar-nav, .toc-sidebar {
-        width: 80vw;
-        min-width: 80vw;
+
+/* ---- Small tablets / large phones (e.g. iPad portrait, big phones) ---- */
+@media (max-width: 768px) {
+    /* Respect the notch / rounded corners on iOS. */
+    .header-inner {
+        gap: 8px;
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
     }
+    /* Let the document picker take whatever width is left (an auto left margin
+       would otherwise swallow the free space and block flex-grow). */
+    .doc-selector { flex: 1 1 auto; margin-left: 0; }
+    .doc-select { min-width: 0; max-width: none; width: 100%; }
+
+    .content-area {
+        padding-left: max(14px, env(safe-area-inset-left));
+        padding-right: max(14px, env(safe-area-inset-right));
+        padding-top: calc(var(--header-height) + 14px);
+        padding-bottom: 56px;
+    }
+    /* Edge-to-edge reading panel on small screens. */
+    .tab-content { padding: 22px 16px 36px; border: none; border-radius: 0; box-shadow: none; }
+    .tab-content h1 { font-size: 1.7em; }
+    .tab-content h2 { font-size: 1.34em; }
+    .tab-content h3 { font-size: 1.16em; }
+
+    /* Wide tables grow to their content and scroll inside the wrapper. */
+    .table-scroll > table { width: auto; min-width: 100%; }
+    /* Long unbroken tokens wrap instead of overflowing. */
+    .tab-content p code, .tab-content li code { overflow-wrap: anywhere; word-break: break-word; }
+
+    .sidebar-nav, .toc-sidebar { width: min(86vw, 340px); min-width: 0; }
+}
+
+/* ---- Phones ---- */
+@media (max-width: 600px) {
+    :root { --header-height: 52px; }
+    body { font-size: 15px; }
+    .doc-selector-label { display: none; }
+    /* Header is tight on phones: drop the prev/next pair (the picker still
+       switches documents). */
+    .nav-btn-group-docnav { display: none; }
+    .header-inner { gap: 6px; }
+    .search-widget { gap: 6px; }
+    /* Comfortable tap targets. */
+    .brand-toggle, .theme-toggle, .search-toggle, .toc-toggle { width: 38px; height: 38px; }
+    .doc-select { height: 38px; }
+    .content-area { padding-top: calc(var(--header-height) + 10px); padding-bottom: 48px; }
+    .tab-content { padding: 18px 14px 32px; }
+    .tab-content h1 { font-size: 1.5em; padding-bottom: 12px; margin-bottom: 18px; }
+    .tab-content h2 { margin: 30px 0 12px; }
+    .tab-content pre { padding: 14px 14px 12px; }
+    /* No hover on touch, so keep the copy button visible. */
+    .code-copy-btn { opacity: 1; transform: none; }
+    .nav-doc-title { max-width: 64vw; font-size: 13px; padding: 6px 14px; }
+}
+
+/* ---- Very small phones ---- */
+@media (max-width: 380px) {
+    .header-inner { gap: 4px; padding-left: 8px; padding-right: 8px; }
+    .brand-toggle, .theme-toggle, .search-toggle, .toc-toggle { width: 36px; height: 36px; }
+    .tab-content { padding: 16px 11px 28px; }
+}
+
+/* Devices that can't hover (touch): always show the copy button. */
+@media (hover: none) {
+    .code-copy-btn { opacity: 1; transform: none; }
+    .tab-content pre:hover .code-lang-label { opacity: 1; }
 }
 
 /* === Print === */
@@ -1078,11 +1590,17 @@ body.nav-condensed .nav-doc-title {
 </head>
 <body data-theme="dark" class="sidebar-collapsed toc-collapsed">
 
+<a class="skip-link" href="#tabPanels">Skip to content</a>
+<div class="read-progress" id="readProgress"></div>
+
 <div class="header-bar">
   <div class="header-inner" id="headerInner">
     <div class="brand">
       <button class="brand-toggle" id="sidebarToggle" title="Toggle sidebar (Ctrl+B)" aria-label="Toggle sidebar">
         <svg class="icon brand-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"></path></svg>
+      </button>
+      <button class="nav-back" id="navBack" title="Go back (Alt+&larr;)" aria-label="Go back" disabled>
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.78 1.97a.75.75 0 0 1 0 1.06L3.81 6h6.44A4.75 4.75 0 0 1 15 10.75v2.5a.75.75 0 0 1-1.5 0v-2.5a3.25 3.25 0 0 0-3.25-3.25H3.81l2.97 2.97a.75.75 0 1 1-1.06 1.06L1.47 7.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"></path></svg>
       </button>
       <span class="brand-name">nageshnnazare/cuda-know-hows</span>
     </div>
@@ -1090,13 +1608,23 @@ body.nav-condensed .nav-doc-title {
       <select class="doc-select" id="docSelect" title="Switch document"></select>
     </div>
     <div class="search-widget">
-      <button class="search-toggle" id="searchTrigger" title="Search all documents (Ctrl+K)" aria-label="Search">
-        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"></path></svg>
-      </button>
-      <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode (Ctrl+Shift+L)" aria-label="Toggle theme"></button>
-      <button class="toc-toggle" id="tocToggle" title="Toggle table of contents (Ctrl+I)" aria-label="Toggle table of contents">
-        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm3.75-1.5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Zm0 5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5ZM2 9a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1 4a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm2.75-.5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Z"></path></svg>
-      </button>
+      <div class="nav-btn-group nav-btn-group-docnav">
+        <button class="doc-nav" id="docPrev" title="Previous document" aria-label="Previous document">
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.78 12.78a.75.75 0 0 1-1.06 0L4.47 8.53a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L6.06 8l3.72 3.72a.75.75 0 0 1 0 1.06Z"></path></svg>
+        </button>
+        <button class="doc-nav" id="docNext" title="Next document" aria-label="Next document">
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06Z"></path></svg>
+        </button>
+      </div>
+      <div class="nav-btn-group nav-btn-group-tools">
+        <button class="search-toggle" id="searchTrigger" title="Search all documents (Ctrl+K)" aria-label="Search">
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"></path></svg>
+        </button>
+        <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode (Ctrl+Shift+L)" aria-label="Toggle theme"></button>
+        <button class="toc-toggle" id="tocToggle" title="Toggle table of contents (Ctrl+I)" aria-label="Toggle table of contents">
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm3.75-1.5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Zm0 5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5ZM2 9a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1 4a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm2.75-.5h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Z"></path></svg>
+        </button>
+      </div>
     </div>
     <div class="nav-doc-title" id="navDocTitle" aria-hidden="true"></div>
   </div>
@@ -1127,6 +1655,9 @@ body.nav-condensed .nav-doc-title {
   <div class="content-area">
     <div id="tabPanels"></div>
   </div>
+  <button class="to-top" id="toTop" title="Back to top" aria-label="Back to top">
+    <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.47 7.78a.75.75 0 0 1 0-1.06l4-4a.75.75 0 0 1 1.06 0l4 4a.75.75 0 0 1-1.06 1.06L8.75 4.81V13a.75.75 0 0 1-1.5 0V4.81L4.53 7.78a.75.75 0 0 1-1.06 0Z"></path></svg>
+  </button>
   <nav class="toc-sidebar collapsed" id="tocSidebar">
     <div class="sidebar-section" id="tocSection">
       <div class="nav-title">
@@ -1140,7 +1671,7 @@ body.nav-condensed .nav-doc-title {
 
 <script>
 const TAB_DATA = [
-  { name: `1. README`, path: `README.md`, dir: ``, body: `<h1 id="complete-cuda-programming-tutorial">Complete CUDA Programming Tutorial</h1>
+  { name: `1. README`, path: `README.md`, dir: ``, words: 3127, mins: 16, body: `<h1 id="complete-cuda-programming-tutorial">Complete CUDA Programming Tutorial</h1>
 <h2 id="from-basics-to-advanced-techniques">From Basics to Advanced Techniques</h2>
 <p>Welcome to the comprehensive CUDA programming tutorial! This tutorial series takes you from basic GPU concepts to advanced optimization techniques, with detailed explanations, graphics, and practical examples.</p>
 <pre><code>╔══════════════════════════════════════════════════════════════╗
@@ -1229,12 +1760,14 @@ nsys profile -o report ./02_first_kernel
 <h2 id="-tutorial-structure">📖 Tutorial Structure</h2>
 <h3 id="part-1-introduction">Part 1: Introduction</h3>
 <p><strong>File:</strong> <code>01_introduction.md</code></p>
-<p><strong>Topics Covered:</strong>
-- What is CUDA and why use it?
-- GPU vs CPU architecture
-- CUDA programming model
-- Memory hierarchy overview
-- Setting up your environment</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>What is CUDA and why use it?</li>
+<li>GPU vs CPU architecture</li>
+<li>CUDA programming model</li>
+<li>Memory hierarchy overview</li>
+<li>Setting up your environment</li>
+</ul>
 <p><strong>Prerequisites:</strong> None</p>
 <p><strong>Visual Highlights:</strong></p>
 <pre><code>CPU Architecture          GPU Architecture
@@ -1248,12 +1781,14 @@ nsys profile -o report ./02_first_kernel
 <hr />
 <h3 id="part-2-first-cuda-kernel">Part 2: First CUDA Kernel</h3>
 <p><strong>File:</strong> <code>02_first_kernel.cu</code></p>
-<p><strong>Topics Covered:</strong>
-- Writing your first <code>__global__</code> function
-- Kernel launch syntax <code>&lt;&lt;&lt;blocks, threads&gt;&gt;&gt;</code>
-- Memory allocation and transfers
-- Error handling
-- Vector addition example</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>Writing your first <code>__global__</code> function</li>
+<li>Kernel launch syntax <code>&lt;&lt;&lt;blocks, threads&gt;&gt;&gt;</code></li>
+<li>Memory allocation and transfers</li>
+<li>Error handling</li>
+<li>Vector addition example</li>
+</ul>
 <p><strong>Code Example:</strong></p>
 <pre><code class="language-cuda">__global__ void vectorAdd(float *a, float *b, float *c, int n) {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1262,10 +1797,12 @@ nsys profile -o report ./02_first_kernel
     }
 }
 </code></pre>
-<p><strong>What You&rsquo;ll Build:</strong>
-- Complete vector addition program
-- Error checking utilities
-- Performance comparison with CPU</p>
+<p><strong>What You&rsquo;ll Build:</strong></p>
+<ul>
+<li>Complete vector addition program</li>
+<li>Error checking utilities</li>
+<li>Performance comparison with CPU</li>
+</ul>
 <p><strong>Compile &amp; Run:</strong></p>
 <pre><code class="language-bash">make 02_first_kernel
 ./02_first_kernel
@@ -1280,12 +1817,14 @@ Speedup: 21.27x
 <hr />
 <h3 id="part-3-cuda-memory-model">Part 3: CUDA Memory Model</h3>
 <p><strong>File:</strong> <code>03_memory_model.cu</code></p>
-<p><strong>Topics Covered:</strong>
-- Global, constant, and shared memory
-- Memory coalescing
-- Access patterns and performance
-- Bank conflicts
-- Bandwidth optimization</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>Global, constant, and shared memory</li>
+<li>Memory coalescing</li>
+<li>Access patterns and performance</li>
+<li>Bank conflicts</li>
+<li>Bandwidth optimization</li>
+</ul>
 <p><strong>Key Concepts:</strong></p>
 <pre><code>Memory Hierarchy (Speed → Size)
 Fast ↑                      Small ↑
@@ -1295,10 +1834,12 @@ Fast ↑                      Small ↑
      Global Memory               |
 Slow ↓                      Large ↓
 </code></pre>
-<p><strong>Performance Tests:</strong>
-- Coalesced vs strided access (5-10x difference)
-- Global vs constant memory (2-3x speedup)
-- Memory bandwidth analysis</p>
+<p><strong>Performance Tests:</strong></p>
+<ul>
+<li>Coalesced vs strided access (5-10x difference)</li>
+<li>Global vs constant memory (2-3x speedup)</li>
+<li>Memory bandwidth analysis</li>
+</ul>
 <p><strong>Compile &amp; Run:</strong></p>
 <pre><code class="language-bash">make 03_memory_model
 ./03_memory_model
@@ -1307,12 +1848,14 @@ Slow ↓                      Large ↓
 <hr />
 <h3 id="part-4-thread-organization">Part 4: Thread Organization</h3>
 <p><strong>File:</strong> <code>04_thread_organization.cu</code></p>
-<p><strong>Topics Covered:</strong>
-- 1D, 2D, and 3D thread layouts
-- Block and grid configuration
-- Thread indexing formulas
-- Optimal block sizes
-- Occupancy considerations</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>1D, 2D, and 3D thread layouts</li>
+<li>Block and grid configuration</li>
+<li>Thread indexing formulas</li>
+<li>Optimal block sizes</li>
+<li>Occupancy considerations</li>
+</ul>
 <p><strong>Visual Guide:</strong></p>
 <pre><code>2D Grid Example:
 ┌────┬────┬────┐
@@ -1323,10 +1866,12 @@ Slow ↓                      Large ↓
 │B0,0│B1,0│B2,0│
 └────┴────┴────┘
 </code></pre>
-<p><strong>Applications:</strong>
-- Image processing (2D)
-- Volume rendering (3D)
-- Performance comparison with different block sizes</p>
+<p><strong>Applications:</strong></p>
+<ul>
+<li>Image processing (2D)</li>
+<li>Volume rendering (3D)</li>
+<li>Performance comparison with different block sizes</li>
+</ul>
 <p><strong>Compile &amp; Run:</strong></p>
 <pre><code class="language-bash">make 04_thread_organization
 ./04_thread_organization
@@ -1335,12 +1880,14 @@ Slow ↓                      Large ↓
 <hr />
 <h3 id="part-5-matrix-operations">Part 5: Matrix Operations</h3>
 <p><strong>File:</strong> <code>05_matrix_operations.cu</code></p>
-<p><strong>Topics Covered:</strong>
-- Naive matrix multiplication
-- Tiled matrix multiplication
-- Matrix transpose optimization
-- Performance comparison with cuBLAS
-- Optimization strategies</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>Naive matrix multiplication</li>
+<li>Tiled matrix multiplication</li>
+<li>Matrix transpose optimization</li>
+<li>Performance comparison with cuBLAS</li>
+<li>Optimization strategies</li>
+</ul>
 <p><strong>Implementations:</strong></p>
 <ol>
 <li>
@@ -1376,13 +1923,15 @@ Slow ↓                      Large ↓
 <hr />
 <h3 id="part-6-shared-memory-optimization">Part 6: Shared Memory Optimization</h3>
 <p><strong>File:</strong> <code>06_shared_memory.cu</code></p>
-<p><strong>Topics Covered:</strong>
-- Shared memory architecture
-- Bank conflicts and how to avoid them
-- Parallel reduction algorithms
-- 1D stencil operations
-- Prefix sum (scan)
-- Histogram computation</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>Shared memory architecture</li>
+<li>Bank conflicts and how to avoid them</li>
+<li>Parallel reduction algorithms</li>
+<li>1D stencil operations</li>
+<li>Prefix sum (scan)</li>
+<li>Histogram computation</li>
+</ul>
 <p><strong>Key Techniques:</strong></p>
 <ol>
 <li>
@@ -1409,14 +1958,16 @@ Slow ↓                      Large ↓
 <hr />
 <h3 id="part-7-thread-indexing-patterns-1d2d3d">Part 7: Thread Indexing Patterns (1D/2D/3D)</h3>
 <p><strong>File:</strong> <code>11_thread_indexing_patterns.md</code></p>
-<p><strong>Topics Covered:</strong>
-- Understanding CUDA thread hierarchy
-- 1D thread indexing for vectors and arrays
-- 2D thread indexing for images and matrices
-- 3D thread indexing for volumes and video
-- Advanced patterns (checkerboard, tiled with halo)
-- Common pitfalls and how to avoid them
-- Performance considerations and memory coalescing</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>Understanding CUDA thread hierarchy</li>
+<li>1D thread indexing for vectors and arrays</li>
+<li>2D thread indexing for images and matrices</li>
+<li>3D thread indexing for volumes and video</li>
+<li>Advanced patterns (checkerboard, tiled with halo)</li>
+<li>Common pitfalls and how to avoid them</li>
+<li>Performance considerations and memory coalescing</li>
+</ul>
 <p><strong>Detailed Examples:</strong></p>
 <ol>
 <li>
@@ -1462,30 +2013,38 @@ Slow ↓                      Large ↓
 │  └─┴─┴─┴─┘                 │
 └────────────────────────────┘
 </code></pre>
-<p><strong>Common Issues Addressed:</strong>
-- Off-by-one errors in boundary checks
-- X/Y axis confusion
-- Row-major vs column-major confusion
-- Uncoalesced memory access</p>
-<p><strong>Who Should Read This:</strong>
-- Beginners learning thread indexing
-- Developers working with images or volumes
-- Anyone confused about 2D/3D indexing</p>
-<p><strong>Prerequisites:</strong>
-- Complete Parts 1-4
-- Basic understanding of arrays and matrices</p>
+<p><strong>Common Issues Addressed:</strong></p>
+<ul>
+<li>Off-by-one errors in boundary checks</li>
+<li>X/Y axis confusion</li>
+<li>Row-major vs column-major confusion</li>
+<li>Uncoalesced memory access</li>
+</ul>
+<p><strong>Who Should Read This:</strong></p>
+<ul>
+<li>Beginners learning thread indexing</li>
+<li>Developers working with images or volumes</li>
+<li>Anyone confused about 2D/3D indexing</li>
+</ul>
+<p><strong>Prerequisites:</strong></p>
+<ul>
+<li>Complete Parts 1-4</li>
+<li>Basic understanding of arrays and matrices</li>
+</ul>
 <p><strong>Read:</strong> <a href="11_thread_indexing_patterns.md">11_thread_indexing_patterns.md</a></p>
 <p><strong>Time to Complete:</strong> 1.5 hours (reading + practice)</p>
 <hr />
 <h3 id="part-8-streams-and-async-operations">Part 8: Streams and Async Operations</h3>
 <p><strong>File:</strong> <code>07_streams_async.cu</code></p>
-<p><strong>Topics Covered:</strong>
-- CUDA streams for concurrency
-- Asynchronous memory transfers
-- Overlapping computation and communication
-- Pinned memory
-- Multi-GPU basics
-- Stream synchronization</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>CUDA streams for concurrency</li>
+<li>Asynchronous memory transfers</li>
+<li>Overlapping computation and communication</li>
+<li>Pinned memory</li>
+<li>Multi-GPU basics</li>
+<li>Stream synchronization</li>
+</ul>
 <p><strong>Performance Pattern:</strong></p>
 <pre><code>WITHOUT STREAMS:
 |H2D|Kernel|D2H|H2D|Kernel|D2H| = 60ms
@@ -1504,14 +2063,16 @@ Stream 2:         |H2D|Kernel|D2H|
 <hr />
 <h3 id="part-8-advanced-topics">Part 8: Advanced Topics</h3>
 <p><strong>File:</strong> <code>08_advanced_topics.cu</code></p>
-<p><strong>Topics Covered:</strong>
-- Atomic operations
-- Warp-level primitives (shuffle, vote)
-- Dynamic parallelism
-- Unified Memory
-- Cooperative groups
-- Fast math intrinsics
-- Performance optimization techniques</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>Atomic operations</li>
+<li>Warp-level primitives (shuffle, vote)</li>
+<li>Dynamic parallelism</li>
+<li>Unified Memory</li>
+<li>Cooperative groups</li>
+<li>Fast math intrinsics</li>
+<li>Performance optimization techniques</li>
+</ul>
 <p><strong>Advanced Features:</strong></p>
 <ol>
 <li><strong>Warp Shuffle</strong> - Fast intra-warp communication</li>
@@ -1528,14 +2089,16 @@ make 08_advanced_topics
 <hr />
 <h3 id="part-9-profiling-and-debugging">Part 9: Profiling and Debugging</h3>
 <p><strong>File:</strong> <code>09_profiling_debugging.md</code></p>
-<p><strong>Topics Covered:</strong>
-- CUDA error checking best practices
-- cuda-memcheck for memory errors
-- cuda-gdb for debugging
-- NVIDIA Nsight Systems (timeline profiling)
-- NVIDIA Nsight Compute (kernel analysis)
-- Performance metrics interpretation
-- Common issues and solutions</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>CUDA error checking best practices</li>
+<li>cuda-memcheck for memory errors</li>
+<li>cuda-gdb for debugging</li>
+<li>NVIDIA Nsight Systems (timeline profiling)</li>
+<li>NVIDIA Nsight Compute (kernel analysis)</li>
+<li>Performance metrics interpretation</li>
+<li>Common issues and solutions</li>
+</ul>
 <p><strong>Essential Tools:</strong></p>
 <table>
 <thead>
@@ -1582,34 +2145,40 @@ ncu --set full -o analysis ./program
 <hr />
 <h3 id="part-10-gpu-architecture-internals">Part 10: GPU Architecture Internals</h3>
 <p><strong>Files:</strong> <code>10_gpu_architecture_internals.md</code>, <code>10_gpu_architecture_internals_part2.md</code></p>
-<p><strong>Topics Covered:</strong>
-- Complete GPU die architecture
-- Streaming Multiprocessor (SM) deep dive
-- Execution units and pipelines (CUDA cores, Tensor cores)
-- Memory subsystem architecture
-- Warp scheduling and execution
-- Cache hierarchy (L1, L2, texture cache)
-- Memory controllers (GDDR6X, HBM)
-- Interconnect architecture (NVLink, PCIe)
-- Architecture evolution (Kepler → Hopper)
-- Performance characteristics and roofline model</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>Complete GPU die architecture</li>
+<li>Streaming Multiprocessor (SM) deep dive</li>
+<li>Execution units and pipelines (CUDA cores, Tensor cores)</li>
+<li>Memory subsystem architecture</li>
+<li>Warp scheduling and execution</li>
+<li>Cache hierarchy (L1, L2, texture cache)</li>
+<li>Memory controllers (GDDR6X, HBM)</li>
+<li>Interconnect architecture (NVLink, PCIe)</li>
+<li>Architecture evolution (Kepler → Hopper)</li>
+<li>Performance characteristics and roofline model</li>
+</ul>
 <p><strong>Detailed Coverage:</strong></p>
-<p><strong>Part 1:</strong>
-- GPU die layout with GPCs, TPCs, and SMs
-- SM microarchitecture (processing blocks, register files)
-- FP32/INT32/FP64/Tensor Core pipelines
-- Shared memory banking and bank conflicts
-- Warp scheduler implementation
-- Branch divergence handling</p>
-<p><strong>Part 2:</strong>
-- L1/L2 cache structure and coherence
-- Memory controller architecture
-- GDDR vs HBM comparison
-- NVLink protocol and topology
-- PCIe interface details
-- Generational architecture comparison
-- Roofline performance model
-- Latency and bandwidth numbers</p>
+<p><strong>Part 1:</strong></p>
+<ul>
+<li>GPU die layout with GPCs, TPCs, and SMs</li>
+<li>SM microarchitecture (processing blocks, register files)</li>
+<li>FP32/INT32/FP64/Tensor Core pipelines</li>
+<li>Shared memory banking and bank conflicts</li>
+<li>Warp scheduler implementation</li>
+<li>Branch divergence handling</li>
+</ul>
+<p><strong>Part 2:</strong></p>
+<ul>
+<li>L1/L2 cache structure and coherence</li>
+<li>Memory controller architecture</li>
+<li>GDDR vs HBM comparison</li>
+<li>NVLink protocol and topology</li>
+<li>PCIe interface details</li>
+<li>Generational architecture comparison</li>
+<li>Roofline performance model</li>
+<li>Latency and bandwidth numbers</li>
+</ul>
 <p><strong>Visual Highlights:</strong></p>
 <pre><code>Streaming Multiprocessor Detail:
 ┌────────────────────────────────┐
@@ -1625,35 +2194,43 @@ ncu --set full -o analysis ./program
 │  Shared Memory (128 KB)        │
 └────────────────────────────────┘
 </code></pre>
-<p><strong>Who Should Read This:</strong>
-- Performance engineers
-- Advanced CUDA developers
-- Computer architecture enthusiasts
-- Anyone optimizing at the hardware level</p>
-<p><strong>Prerequisites:</strong>
-- Complete Parts 1-9
-- Understanding of computer architecture basics
-- Desire to understand hardware-level optimization</p>
+<p><strong>Who Should Read This:</strong></p>
+<ul>
+<li>Performance engineers</li>
+<li>Advanced CUDA developers</li>
+<li>Computer architecture enthusiasts</li>
+<li>Anyone optimizing at the hardware level</li>
+</ul>
+<p><strong>Prerequisites:</strong></p>
+<ul>
+<li>Complete Parts 1-9</li>
+<li>Understanding of computer architecture basics</li>
+<li>Desire to understand hardware-level optimization</li>
+</ul>
 <p><strong>Read:</strong> <a href="10_gpu_architecture_internals.md">10_gpu_architecture_internals.md</a></p>
 <p><strong>Time to Complete:</strong> 3-4 hours (detailed reading)</p>
 <hr />
 <h3 id="part-12-work-allocation--execution-guide">Part 12: Work Allocation &amp; Execution Guide</h3>
 <p><strong>File:</strong> <code>WORK_ALLOCATION_GUIDE.md</code></p>
-<p><strong>Topics Covered:</strong>
-- Complete hardware hierarchy (GPU → SMs → Warps → Cores)
-- Software to hardware mapping (Grid → Blocks → Threads)
-- Block size selection strategies (when to use 128, 256, 512, 1024)
-- Grid size selection strategies (exact coverage, saturation, grid-stride)
-- Occupancy optimization and limiting factors
-- Work distribution patterns (element-wise, tiled, reduction, grid-stride)
-- Real-world configuration examples
-- Decision framework for choosing configurations</p>
-<p><strong>Key Questions Answered:</strong>
-- When should I use 256 threads vs 512 threads per block?
-- How many blocks should I launch?
-- What&rsquo;s the relationship between occupancy and performance?
-- How does work get mapped to CUDA cores and SMs?
-- Which work distribution pattern should I use?</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>Complete hardware hierarchy (GPU → SMs → Warps → Cores)</li>
+<li>Software to hardware mapping (Grid → Blocks → Threads)</li>
+<li>Block size selection strategies (when to use 128, 256, 512, 1024)</li>
+<li>Grid size selection strategies (exact coverage, saturation, grid-stride)</li>
+<li>Occupancy optimization and limiting factors</li>
+<li>Work distribution patterns (element-wise, tiled, reduction, grid-stride)</li>
+<li>Real-world configuration examples</li>
+<li>Decision framework for choosing configurations</li>
+</ul>
+<p><strong>Key Questions Answered:</strong></p>
+<ul>
+<li>When should I use 256 threads vs 512 threads per block?</li>
+<li>How many blocks should I launch?</li>
+<li>What&rsquo;s the relationship between occupancy and performance?</li>
+<li>How does work get mapped to CUDA cores and SMs?</li>
+<li>Which work distribution pattern should I use?</li>
+</ul>
 <p><strong>Visual Highlights:</strong></p>
 <pre><code>Complete GPU Hierarchy:
 GPU Device
@@ -1665,11 +2242,13 @@ GPU Device
          ├─ Registers (65,536)
          └─ Shared Memory (128 KB)
 </code></pre>
-<p><strong>Practical Decision Trees:</strong>
-- Block size selection based on workload type
-- Grid size calculation formulas
-- Resource usage analysis
-- Performance trade-offs</p>
+<p><strong>Practical Decision Trees:</strong></p>
+<ul>
+<li>Block size selection based on workload type</li>
+<li>Grid size calculation formulas</li>
+<li>Resource usage analysis</li>
+<li>Performance trade-offs</li>
+</ul>
 <p><strong>Real Examples with Analysis:</strong></p>
 <pre><code>Vector Addition (10M elements):
 • Block: 256 threads
@@ -1684,37 +2263,47 @@ Matrix Multiply (2048×2048):
 • Result: 100% occupancy, optimal reuse ✓
 </code></pre>
 <p><strong>Performance Benchmarks:</strong>
-Shows actual timing data for different block sizes:
-- 32 threads: 2.1 ms (poor latency hiding)
-- 256 threads: 0.5 ms (optimal) ✓
-- 1024 threads: 0.6 ms (less flexible)</p>
-<p><strong>Who Should Read This:</strong>
-- Anyone confused about block/grid sizing
-- Developers wanting to optimize occupancy
-- Engineers needing to understand work distribution
-- Students learning CUDA execution model</p>
-<p><strong>Prerequisites:</strong>
-- Complete Parts 1-4
-- Understanding of thread hierarchy
-- Basic knowledge of GPU architecture</p>
+Shows actual timing data for different block sizes:</p>
+<ul>
+<li>32 threads: 2.1 ms (poor latency hiding)</li>
+<li>256 threads: 0.5 ms (optimal) ✓</li>
+<li>1024 threads: 0.6 ms (less flexible)</li>
+</ul>
+<p><strong>Who Should Read This:</strong></p>
+<ul>
+<li>Anyone confused about block/grid sizing</li>
+<li>Developers wanting to optimize occupancy</li>
+<li>Engineers needing to understand work distribution</li>
+<li>Students learning CUDA execution model</li>
+</ul>
+<p><strong>Prerequisites:</strong></p>
+<ul>
+<li>Complete Parts 1-4</li>
+<li>Understanding of thread hierarchy</li>
+<li>Basic knowledge of GPU architecture</li>
+</ul>
 <p><strong>Read:</strong> <a href="WORK_ALLOCATION_GUIDE.md">WORK_ALLOCATION_GUIDE.md</a></p>
 <p><strong>Time to Complete:</strong> 2-3 hours (comprehensive reading + practice)</p>
 <hr />
 <h2 id="-setup-instructions">🛠️ Setup Instructions</h2>
 <h3 id="system-requirements">System Requirements</h3>
-<p><strong>Hardware:</strong>
-- NVIDIA GPU with compute capability &gt;= 7.0 (Volta or later recommended)
-- Entry-level: RTX 2060 or GTX 1650 (Turing)
-- Recommended: RTX 3060+ (Ampere) or RTX 4060+ (Ada)
-- For Tensor Core examples: sm_70+ (Volta or later)
-- For CUDA Tile examples: sm_80+ (Ampere or later)</p>
-<p><strong>Software:</strong>
-- CUDA Toolkit 12.6 or later (13.3 recommended for latest features)
-- Compatible C/C++ compiler:
-  - Linux: GCC 7-14, Clang 11+
-  - Windows: Visual Studio 2019+
-- C++20 for CUDA Tile programming; C++23 supported in nvcc 13.3+
-- CMake 3.18+ (optional, for build system)</p>
+<p><strong>Hardware:</strong></p>
+<ul>
+<li>NVIDIA GPU with compute capability &gt;= 7.0 (Volta or later recommended)</li>
+<li>Entry-level: RTX 2060 or GTX 1650 (Turing)</li>
+<li>Recommended: RTX 3060+ (Ampere) or RTX 4060+ (Ada)</li>
+<li>For Tensor Core examples: sm_70+ (Volta or later)</li>
+<li>For CUDA Tile examples: sm_80+ (Ampere or later)</li>
+</ul>
+<p><strong>Software:</strong></p>
+<ul>
+<li>CUDA Toolkit 12.6 or later (13.3 recommended for latest features)</li>
+<li>Compatible C/C++ compiler:</li>
+<li>Linux: GCC 7-14, Clang 11+</li>
+<li>Windows: Visual Studio 2019+</li>
+<li>C++20 for CUDA Tile programming; C++23 supported in nvcc 13.3+</li>
+<li>CMake 3.18+ (optional, for build system)</li>
+</ul>
 <h3 id="installation">Installation</h3>
 <h4 id="linux-ubuntudebian">Linux (Ubuntu/Debian)</h4>
 <pre><code class="language-bash"># 1. Check for NVIDIA GPU
@@ -1944,16 +2533,20 @@ export PATH=/usr/local/cuda/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 </code></pre>
 <h4 id="issue-no-cuda-capable-device-is-detected">Issue: &ldquo;no CUDA-capable device is detected&rdquo;</h4>
-<p><strong>Solutions:</strong>
-1. Check GPU: <code>lspci | grep -i nvidia</code>
-2. Check driver: <code>nvidia-smi</code>
-3. Reinstall driver if needed
-4. Check if GPU is enabled in BIOS</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>Check GPU: <code>lspci | grep -i nvidia</code></li>
+<li>Check driver: <code>nvidia-smi</code></li>
+<li>Reinstall driver if needed</li>
+<li>Check if GPU is enabled in BIOS</li>
+</ol>
 <h4 id="issue-cudaerrorinvalidconfiguration">Issue: &ldquo;cudaErrorInvalidConfiguration&rdquo;</h4>
-<p><strong>Common Causes:</strong>
-- Block size exceeds maximum (1024 threads)
-- Grid size too large
-- Shared memory exceeded</p>
+<p><strong>Common Causes:</strong></p>
+<ul>
+<li>Block size exceeds maximum (1024 threads)</li>
+<li>Grid size too large</li>
+<li>Shared memory exceeded</li>
+</ul>
 <p><strong>Solution:</strong></p>
 <pre><code class="language-c">// Check device properties
 cudaDeviceProp prop;
@@ -1962,12 +2555,14 @@ printf(&quot;Max threads per block: %d\\n&quot;, prop.maxThreadsPerBlock);
 printf(&quot;Max shared memory: %zu\\n&quot;, prop.sharedMemPerBlock);
 </code></pre>
 <h4 id="issue-slow-performance">Issue: Slow Performance</h4>
-<p><strong>Debug Steps:</strong>
-1. Profile with Nsight Systems
-2. Check occupancy
-3. Verify memory coalescing
-4. Look for bank conflicts
-5. Measure bandwidth utilization</p>
+<p><strong>Debug Steps:</strong></p>
+<ol>
+<li>Profile with Nsight Systems</li>
+<li>Check occupancy</li>
+<li>Verify memory coalescing</li>
+<li>Look for bank conflicts</li>
+<li>Measure bandwidth utilization</li>
+</ol>
 <hr />
 <h2 id="-further-reading">📚 Further Reading</h2>
 <h3 id="official-documentation">Official Documentation</h3>
@@ -2112,11 +2707,13 @@ printf(&quot;Max shared memory: %zu\\n&quot;, prop.sharedMemPerBlock);
 <p>CUDA® is a trademark of NVIDIA Corporation.</p>
 <hr />
 <h2 id="-acknowledgments">🙏 Acknowledgments</h2>
-<p>Based on:
-- NVIDIA CUDA documentation
-- Academic research papers
-- Community best practices
-- Years of GPU programming experience</p>
+<p>Based on:</p>
+<ul>
+<li>NVIDIA CUDA documentation</li>
+<li>Academic research papers</li>
+<li>Community best practices</li>
+<li>Years of GPU programming experience</li>
+</ul>
 <hr />
 <h2 id="-getting-help">📞 Getting Help</h2>
 <p>Stuck? Here&rsquo;s how to get help:</p>
@@ -2134,7 +2731,7 @@ printf(&quot;Max shared memory: %zu\\n&quot;, prop.sharedMemPerBlock);
 <p><em>Last Updated: May 2026</em>
 <em>CUDA Version: 13.3 (also compatible with 12.x)</em>
 <em>Tutorial Version: 2.0</em></p>` },
-  { name: `2. Introduction`, path: `01_introduction.md`, dir: ``, body: `<h1 id="cuda-tutorial---part-1-introduction-to-cuda-programming">CUDA Tutorial - Part 1: Introduction to CUDA Programming</h1>
+  { name: `2. Introduction`, path: `01_introduction.md`, dir: ``, words: 3067, mins: 15, body: `<h1 id="cuda-tutorial---part-1-introduction-to-cuda-programming">CUDA Tutorial - Part 1: Introduction to CUDA Programming</h1>
 <h2 id="table-of-contents">Table of Contents</h2>
 <ol>
 <li><a href="#what-is-cuda">What is CUDA?</a></li>
@@ -2260,28 +2857,34 @@ GPU (Parallel):         [██] 5ms
                         Speedup: 20x!
 </code></pre>
 <h3 id="ideal-gpu-workloads">Ideal GPU Workloads:</h3>
-<p>✅ <strong>Good for GPU:</strong>
-- Large-scale data parallelism
-- Simple, repetitive operations
-- Matrix/vector operations
-- Image/video processing
-- Machine learning training
-- Scientific simulations</p>
-<p>❌ <strong>Not ideal for GPU:</strong>
-- Sequential algorithms
-- Heavy branching/conditionals
-- Small data sets
-- Complex control flow
-- Frequent host-device transfers</p>
+<p>✅ <strong>Good for GPU:</strong></p>
+<ul>
+<li>Large-scale data parallelism</li>
+<li>Simple, repetitive operations</li>
+<li>Matrix/vector operations</li>
+<li>Image/video processing</li>
+<li>Machine learning training</li>
+<li>Scientific simulations</li>
+</ul>
+<p>❌ <strong>Not ideal for GPU:</strong></p>
+<ul>
+<li>Sequential algorithms</li>
+<li>Heavy branching/conditionals</li>
+<li>Small data sets</li>
+<li>Complex control flow</li>
+<li>Frequent host-device transfers</li>
+</ul>
 <hr />
 <h2 id="cuda-programming-model">CUDA Programming Model</h2>
 <h3 id="the-simt-architecture">The SIMT Architecture</h3>
-<p>CUDA uses <strong>SIMT</strong> (Single Instruction, Multiple Threads):
-- A warp of 32 threads fetches the same instruction
-- Each thread operates on different data (SIMD-like, but more flexible)
-- Threads can diverge (follow different branches), but divergent paths serialize within a warp
-- Since Volta (2017), threads within a warp have independent program counters,
-  enabling fine-grained divergence and reconvergence</p>
+<p>CUDA uses <strong>SIMT</strong> (Single Instruction, Multiple Threads):</p>
+<ul>
+<li>A warp of 32 threads fetches the same instruction</li>
+<li>Each thread operates on different data (SIMD-like, but more flexible)</li>
+<li>Threads can diverge (follow different branches), but divergent paths serialize within a warp</li>
+<li>Since Volta (2017), threads within a warp have independent program counters,
+  enabling fine-grained divergence and reconvergence</li>
+</ul>
 <pre><code>┌──────────────────────────────────────────────────────────────────┐
 │                    CUDA THREAD HIERARCHY                         │
 ├──────────────────────────────────────────────────────────────────┤
@@ -2474,7 +3077,7 @@ high-performance code. Each generation introduces new capabilities.</p>
 │ Hopper     │ sm_90  │ TMA, DPX, FP8, Thread Block Clusters, WGMMA           │
 │ Blackwell  │ sm_100 │ FP4/FP6, 5th-gen Tensor Cores, Tensor Memory (TMEM)   │
 │ Blackwell  │ sm_120 │ Consumer RTX 50-series, block-scaled MMA              │
-│   (consumer)│       │ (no tcgen05, uses HMMA/WGMMA paths)                   │
+│  (consumer)│        │ (no tcgen05, uses HMMA/WGMMA paths)                   │
 └────────────┴────────┴───────────────────────────────────────────────────────┘
 
 Feature-Complete (no new features in future CUDA):
@@ -2483,23 +3086,37 @@ Feature-Complete (no new features in future CUDA):
 </code></pre>
 <h3 id="blackwell-architecture-highlights-2025-2026">Blackwell Architecture Highlights (2025-2026):</h3>
 <ul>
-<li><strong>208 billion transistors</strong> on a dual-die design (two reticle-limited dies
-  connected by a 10 TB/s chip-to-chip interconnect)</li>
-<li><strong>5th-gen Tensor Cores</strong>: native FP4 and FP6 with hardware rescaling,
-  single-thread MMA via <code>tcgen05.mma</code> (replaces warp-synchronous MMA)</li>
-<li><strong>Tensor Memory (TMEM)</strong>: dedicated on-chip memory for tensor operands,
-  reducing reliance on shared memory and register files during matrix ops</li>
-<li><strong>CTA Pair Execution</strong>: two CTAs share operands through an intra-TPC network</li>
+<li>
+<p><strong>208 billion transistors</strong> on a dual-die design (two reticle-limited dies
+  connected by a 10 TB/s chip-to-chip interconnect)</p>
+</li>
+<li>
+<p><strong>5th-gen Tensor Cores</strong>: native FP4 and FP6 with hardware rescaling,
+  single-thread MMA via <code>tcgen05.mma</code> (replaces warp-synchronous MMA)</p>
+</li>
+<li>
+<p><strong>Tensor Memory (TMEM)</strong>: dedicated on-chip memory for tensor operands,
+  reducing reliance on shared memory and register files during matrix ops</p>
+</li>
+<li>
+<p><strong>CTA Pair Execution</strong>: two CTAs share operands through an intra-TPC network</p>
+</li>
 <li><strong>192 GB HBM3e</strong> at 8 TB/s bandwidth (B200)</li>
 <li><strong>NVLink 5</strong>: 1.8 TB/s per GPU (up from 900 GB/s on Hopper)</li>
 </ul>
 <h3 id="hopper-architecture-highlights-2022-2024">Hopper Architecture Highlights (2022-2024):</h3>
 <ul>
-<li><strong>Thread Block Clusters</strong>: new hierarchy level, groups of blocks that can
-  cooperate via distributed shared memory</li>
-<li><strong>Tensor Memory Accelerator (TMA)</strong>: hardware unit for async bulk data
-  movement, offloading address computation from CUDA cores</li>
-<li><strong>WGMMA</strong>: warp-group matrix multiply-accumulate (groups of 4 warps = 128 threads)</li>
+<li>
+<p><strong>Thread Block Clusters</strong>: new hierarchy level, groups of blocks that can
+  cooperate via distributed shared memory</p>
+</li>
+<li>
+<p><strong>Tensor Memory Accelerator (TMA)</strong>: hardware unit for async bulk data
+  movement, offloading address computation from CUDA cores</p>
+</li>
+<li>
+<p><strong>WGMMA</strong>: warp-group matrix multiply-accumulate (groups of 4 warps = 128 threads)</p>
+</li>
 <li><strong>DPX Instructions</strong>: hardware-accelerated dynamic programming</li>
 <li><strong>FP8</strong> (e4m3, e5m2): native 8-bit floating-point for AI training/inference</li>
 </ul>
@@ -2507,15 +3124,19 @@ Feature-Complete (no new features in future CUDA):
 <h2 id="setting-up-cuda">Setting Up CUDA</h2>
 <h3 id="system-requirements">System Requirements:</h3>
 <ol>
-<li><strong>Hardware</strong>: NVIDIA GPU with compute capability &gt;= 7.0 recommended
+<li>
+<p><strong>Hardware</strong>: NVIDIA GPU with compute capability &gt;= 7.0 recommended
    - Minimum: sm_70 (Volta) for full modern CUDA feature support
    - Note: Maxwell/Pascal/Volta are feature-complete and will lose offline
-     compilation support in the next major toolkit release</li>
-<li><strong>Software</strong>: 
+     compilation support in the next major toolkit release</p>
+</li>
+<li>
+<p><strong>Software</strong>: 
    - NVIDIA GPU drivers (R550+ for CUDA 12.x, R580+ for CUDA 13.x)
    - CUDA Toolkit (13.3 is the latest as of May 2026)
    - C/C++ compiler: GCC 7-14, Clang 11+, or MSVC 2019+
-   - C++20 required for CUDA Tile programming; C++23 officially supported in nvcc</li>
+   - C++20 required for CUDA Tile programming; C++23 officially supported in nvcc</p>
+</li>
 </ol>
 <h3 id="installation-steps-linux">Installation Steps (Linux):</h3>
 <pre><code class="language-bash"># 1. Check GPU
@@ -2696,11 +3317,13 @@ effectively use (and debug) higher-level abstractions like CUDA Tile.</p>
 <li>Setting up your CUDA environment</li>
 </ul>
 <h3 id="next-steps">Next Steps:</h3>
-<p>In the next tutorial, we&rsquo;ll write our first CUDA kernel and understand:
-- How to write <code>__global__</code> functions
-- How to launch kernels with <code>&lt;&lt;&lt;blocks, threads&gt;&gt;&gt;</code>
-- How to manage memory between host and device
-- How to handle errors properly</p>
+<p>In the next tutorial, we&rsquo;ll write our first CUDA kernel and understand:</p>
+<ul>
+<li>How to write <code>__global__</code> functions</li>
+<li>How to launch kernels with <code>&lt;&lt;&lt;blocks, threads&gt;&gt;&gt;</code></li>
+<li>How to manage memory between host and device</li>
+<li>How to handle errors properly</li>
+</ul>
 <hr />
 <h2 id="quick-reference-card">Quick Reference Card</h2>
 <pre><code>┌─────────────────────────────────────────────────────────────┐
@@ -2736,7 +3359,7 @@ effectively use (and debug) higher-level abstractions like CUDA Tile.</p>
 <li><a href="https://resources.nvidia.com/en-us-blackwell-architecture">Blackwell Architecture Whitepaper</a></li>
 </ul>
 <p>Ready to write your first CUDA kernel? Continue to <a href="./02_first_kernel.cu"><strong>02_first_kernel.cu</strong></a>!</p>` },
-  { name: `3. First Kernel`, path: `02_first_kernel.cu`, dir: ``, body: `<h1 id="02_first_kernelcu">02_first_kernel.cu</h1>
+  { name: `3. First Kernel`, path: `02_first_kernel.cu`, dir: ``, words: 1482, mins: 7, body: `<h1 id="02_first_kernelcu">02_first_kernel.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 2: Your First CUDA Kernel
  * 
@@ -3202,7 +3825,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `4. Memory Model`, path: `03_memory_model.cu`, dir: ``, body: `<h1 id="03_memory_modelcu">03_memory_model.cu</h1>
+  { name: `4. Memory Model`, path: `03_memory_model.cu`, dir: ``, words: 1851, mins: 9, body: `<h1 id="03_memory_modelcu">03_memory_model.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 3: CUDA Memory Model
  * 
@@ -3705,7 +4328,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `5. Thread Organization`, path: `04_thread_organization.cu`, dir: ``, body: `<h1 id="04_thread_organizationcu">04_thread_organization.cu</h1>
+  { name: `5. Thread Organization`, path: `04_thread_organization.cu`, dir: ``, words: 2131, mins: 11, body: `<h1 id="04_thread_organizationcu">04_thread_organization.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 4: Thread Organization and Indexing
  * 
@@ -4281,7 +4904,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `6. Matrix Operations`, path: `05_matrix_operations.cu`, dir: ``, body: `<h1 id="05_matrix_operationscu">05_matrix_operations.cu</h1>
+  { name: `6. Matrix Operations`, path: `05_matrix_operations.cu`, dir: ``, words: 2244, mins: 11, body: `<h1 id="05_matrix_operationscu">05_matrix_operations.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 5: Matrix Operations
  * 
@@ -4914,7 +5537,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `7. Shared Memory`, path: `06_shared_memory.cu`, dir: ``, body: `<h1 id="06_shared_memorycu">06_shared_memory.cu</h1>
+  { name: `7. Shared Memory`, path: `06_shared_memory.cu`, dir: ``, words: 2529, mins: 13, body: `<h1 id="06_shared_memorycu">06_shared_memory.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 6: Shared Memory and Optimization
  * 
@@ -5621,7 +6244,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `8. Streams Async`, path: `07_streams_async.cu`, dir: ``, body: `<h1 id="07_streams_asynccu">07_streams_async.cu</h1>
+  { name: `8. Streams Async`, path: `07_streams_async.cu`, dir: ``, words: 1837, mins: 9, body: `<h1 id="07_streams_asynccu">07_streams_async.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 7: Streams and Asynchronous Operations
  * 
@@ -6178,7 +6801,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `9. Advanced Topics`, path: `08_advanced_topics.cu`, dir: ``, body: `<h1 id="08_advanced_topicscu">08_advanced_topics.cu</h1>
+  { name: `9. Advanced Topics`, path: `08_advanced_topics.cu`, dir: ``, words: 2248, mins: 11, body: `<h1 id="08_advanced_topicscu">08_advanced_topics.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 8: Advanced Topics
  * 
@@ -6830,7 +7453,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `10. Profiling Debugging`, path: `09_profiling_debugging.md`, dir: ``, body: `<h1 id="cuda-tutorial---part-9-profiling-and-debugging-tools">CUDA Tutorial - Part 9: Profiling and Debugging Tools</h1>
+  { name: `10. Profiling Debugging`, path: `09_profiling_debugging.md`, dir: ``, words: 3166, mins: 16, body: `<h1 id="cuda-tutorial---part-9-profiling-and-debugging-tools">CUDA Tutorial - Part 9: Profiling and Debugging Tools</h1>
 <h2 id="table-of-contents">Table of Contents</h2>
 <ol>
 <li><a href="#overview">Overview</a></li>
@@ -7488,11 +8111,13 @@ Maximum Warps per SM = min(
     SharedMemLimit / SharedMemPerBlock
 )
 </code></pre>
-<p><strong>Factors Affecting Occupancy:</strong>
-- Threads per block
-- Registers per thread
-- Shared memory per block
-- Block size</p>
+<p><strong>Factors Affecting Occupancy:</strong></p>
+<ul>
+<li>Threads per block</li>
+<li>Registers per thread</li>
+<li>Shared memory per block</li>
+<li>Block size</li>
+</ul>
 <p><strong>Example Calculation:</strong></p>
 <pre><code>GPU: RTX 3080
 - Max warps per SM: 64
@@ -7537,10 +8162,12 @@ Low IPC → Check for:
 <p><strong>Symptom:</strong></p>
 <pre><code>cuda-memcheck: Invalid __global__ write of size 4
 </code></pre>
-<p><strong>Common Causes:</strong>
-- Array index out of bounds
-- Incorrect grid/block dimensions
-- Pointer arithmetic error</p>
+<p><strong>Common Causes:</strong></p>
+<ul>
+<li>Array index out of bounds</li>
+<li>Incorrect grid/block dimensions</li>
+<li>Pointer arithmetic error</li>
+</ul>
 <p><strong>Solution:</strong></p>
 <pre><code class="language-c">__global__ void safeKernel(float *data, int n) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -7555,11 +8182,13 @@ Low IPC → Check for:
 <p><strong>Symptom:</strong></p>
 <pre><code>cudaError: unspecified launch failure
 </code></pre>
-<p><strong>Common Causes:</strong>
-- Kernel crash (division by zero, assert failure)
-- Stack overflow
-- Invalid memory access
-- Timeout (Windows TDR)</p>
+<p><strong>Common Causes:</strong></p>
+<ul>
+<li>Kernel crash (division by zero, assert failure)</li>
+<li>Stack overflow</li>
+<li>Invalid memory access</li>
+<li>Timeout (Windows TDR)</li>
+</ul>
 <p><strong>Debug Steps:</strong></p>
 <pre><code class="language-bash"># 1. Run with cuda-memcheck
 cuda-memcheck ./program
@@ -7576,10 +8205,12 @@ cuda-gdb ./program
 <p><strong>Symptom:</strong></p>
 <pre><code>Achieved Occupancy: 25%
 </code></pre>
-<p><strong>Common Causes:</strong>
-- Too many registers per thread
-- Too much shared memory
-- Block size too small</p>
+<p><strong>Common Causes:</strong></p>
+<ul>
+<li>Too many registers per thread</li>
+<li>Too much shared memory</li>
+<li>Block size too small</li>
+</ul>
 <p><strong>Solutions:</strong></p>
 <pre><code class="language-bash"># Check resource usage
 nvcc --ptxas-options=-v program.cu
@@ -7766,10 +8397,16 @@ compute-sanitizer --tool synccheck ./program
 # Memory initialization checking
 compute-sanitizer --tool initcheck ./program
 </code></pre>
-<p>New in CUDA 12.8+:
-- <strong>Python call stack support</strong>: Compute Sanitizer can now show Python call stacks
-  alongside CUDA errors, invaluable for debugging PyTorch/JAX custom ops
-- <strong>Tensor Core MMA guardrails</strong>: Detects incorrect tensor core usage on Blackwell</p>
+<p>New in CUDA 12.8+:</p>
+<ul>
+<li>
+<p><strong>Python call stack support</strong>: Compute Sanitizer can now show Python call stacks
+  alongside CUDA errors, invaluable for debugging PyTorch/JAX custom ops</p>
+</li>
+<li>
+<p><strong>Tensor Core MMA guardrails</strong>: Detects incorrect tensor core usage on Blackwell</p>
+</li>
+</ul>
 <h3 id="nsight-systems-updates">Nsight Systems Updates</h3>
 <ul>
 <li>ETW (Event Tracing for Windows) support for CUDA driver activity reporting</li>
@@ -7814,7 +8451,7 @@ nvcc --compileiq my_kernel.cu -arch=sm_90
 </ul>
 <hr />
 <p><strong>Next Steps:</strong> Return to the <a href="README.md">main README</a> to continue the tutorial series!</p>` },
-  { name: `11. Gpu Architecture Internals`, path: `10_gpu_architecture_internals.md`, dir: ``, body: `<h1 id="gpu-architecture-internals-a-deep-dive">GPU Architecture Internals: A Deep Dive</h1>
+  { name: `11. Gpu Architecture Internals`, path: `10_gpu_architecture_internals.md`, dir: ``, words: 7939, mins: 40, body: `<h1 id="gpu-architecture-internals-a-deep-dive">GPU Architecture Internals: A Deep Dive</h1>
 <h2 id="advanced-hardware-architecture-guide">Advanced Hardware Architecture Guide</h2>
 <p>This document provides an in-depth exploration of NVIDIA GPU architecture at the hardware level, intended for advanced users, performance engineers, and those seeking to understand the physical implementation details.</p>
 <hr />
@@ -8943,7 +9580,7 @@ dedicated Tensor Memory.</p>
 <p>This concludes the GPU architecture internals deep dive, covering hardware
 from the SM level through the latest Blackwell innovations. For hands-on
 examples leveraging these features, see <code>22_modern_cuda.cu</code>.</p>` },
-  { name: `12. Gpu Architecture Internals Part2`, path: `10_gpu_architecture_internals_part2.md`, dir: ``, body: `<h1 id="gpu-architecture-internals-part-2">GPU Architecture Internals: Part 2</h1>
+  { name: `12. Gpu Architecture Internals Part2`, path: `10_gpu_architecture_internals_part2.md`, dir: ``, words: 6185, mins: 31, body: `<h1 id="gpu-architecture-internals-part-2">GPU Architecture Internals: Part 2</h1>
 <h2 id="continuation-memory-interconnects-and-evolution">Continuation: Memory, Interconnects, and Evolution</h2>
 <p><em>This is a continuation of <a href="10_gpu_architecture_internals.md">Part 1</a></em></p>
 <hr />
@@ -9843,7 +10480,7 @@ examples leveraging these features, see <code>22_modern_cuda.cu</code>.</p>` },
 <hr />
 <p><em>For practical programming guidance, see the main tutorial files.</em></p>
 <p><em>For profiling these hardware features, see <a href="09_profiling_debugging.md">09_profiling_debugging.md</a></em></p>` },
-  { name: `13. Thread Indexing Patterns`, path: `11_thread_indexing_patterns.md`, dir: ``, body: `<h1 id="cuda-thread-indexing-patterns-complete-guide">CUDA Thread Indexing Patterns: Complete Guide</h1>
+  { name: `13. Thread Indexing Patterns`, path: `11_thread_indexing_patterns.md`, dir: ``, words: 6312, mins: 32, body: `<h1 id="cuda-thread-indexing-patterns-complete-guide">CUDA Thread Indexing Patterns: Complete Guide</h1>
 <h2 id="1d-2d-and-3d-thread-access-with-detailed-illustrations">1D, 2D, and 3D Thread Access with Detailed Illustrations</h2>
 <p>This tutorial provides an in-depth exploration of thread indexing patterns in CUDA, from basic 1D arrays to complex 3D volumes, with visual illustrations and practical examples.</p>
 <hr />
@@ -9892,16 +10529,22 @@ examples leveraging these features, see <code>22_modern_cuda.cu</code>.</p>` },
 └──────────────────────────────────────────────────────────────────┘
 </code></pre>
 <h3 id="key-concepts">Key Concepts</h3>
-<p><strong>Grid</strong>: Collection of all blocks launched by a kernel
-- Can be 1D, 2D, or 3D
-- Defined by <code>gridDim</code></p>
-<p><strong>Block</strong>: Group of threads that can cooperate
-- Can be 1D, 2D, or 3D
-- Defined by <code>blockDim</code>
-- Maximum: 1024 threads per block (architecture dependent)</p>
-<p><strong>Thread</strong>: Individual execution unit
-- Has unique ID within block and globally
-- Executes kernel code</p>
+<p><strong>Grid</strong>: Collection of all blocks launched by a kernel</p>
+<ul>
+<li>Can be 1D, 2D, or 3D</li>
+<li>Defined by <code>gridDim</code></li>
+</ul>
+<p><strong>Block</strong>: Group of threads that can cooperate</p>
+<ul>
+<li>Can be 1D, 2D, or 3D</li>
+<li>Defined by <code>blockDim</code></li>
+<li>Maximum: 1024 threads per block (architecture dependent)</li>
+</ul>
+<p><strong>Thread</strong>: Individual execution unit</p>
+<ul>
+<li>Has unique ID within block and globally</li>
+<li>Executes kernel code</li>
+</ul>
 <hr />
 <h2 id="1d-thread-indexing">1D Thread Indexing</h2>
 <h3 id="basic-1d-configuration">Basic 1D Configuration</h3>
@@ -10982,7 +11625,7 @@ convolve2DHalo&lt;&lt;&lt;gridSize, blockSize&gt;&gt;&gt;(d_input, d_output, wid
 <hr />
 <p><em>For executable code examples, see <a href="04_thread_organization.cu">04_thread_organization.cu</a></em></p>
 <p><em>For performance profiling, see <a href="09_profiling_debugging.md">09_profiling_debugging.md</a></em></p>` },
-  { name: `14. Image Processing`, path: `12_image_processing.cu`, dir: ``, body: `<h1 id="12_image_processingcu">12_image_processing.cu</h1>
+  { name: `14. Image Processing`, path: `12_image_processing.cu`, dir: ``, words: 3886, mins: 19, body: `<h1 id="12_image_processingcu">12_image_processing.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 12: Image Processing
  * 
@@ -11957,7 +12600,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `15. Sorting Algorithms`, path: `13_sorting_algorithms.cu`, dir: ``, body: `<h1 id="13_sorting_algorithmscu">13_sorting_algorithms.cu</h1>
+  { name: `15. Sorting Algorithms`, path: `13_sorting_algorithms.cu`, dir: ``, words: 2778, mins: 14, body: `<h1 id="13_sorting_algorithmscu">13_sorting_algorithms.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 13: Sorting Algorithms
  * 
@@ -12692,7 +13335,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `16. Scientific Computing`, path: `14_scientific_computing.cu`, dir: ``, body: `<h1 id="14_scientific_computingcu">14_scientific_computing.cu</h1>
+  { name: `16. Scientific Computing`, path: `14_scientific_computing.cu`, dir: ``, words: 2849, mins: 14, body: `<h1 id="14_scientific_computingcu">14_scientific_computing.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 14: Scientific Computing
  * 
@@ -13451,13 +14094,15 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `17. Optimization Case Studies`, path: `15_optimization_case_studies.md`, dir: ``, body: `<h1 id="cuda-optimization-case-studies">CUDA Optimization Case Studies</h1>
+  { name: `17. Optimization Case Studies`, path: `15_optimization_case_studies.md`, dir: ``, words: 2680, mins: 13, body: `<h1 id="cuda-optimization-case-studies">CUDA Optimization Case Studies</h1>
 <h2 id="step-by-step-performance-improvements">Step-by-Step Performance Improvements</h2>
-<p>This guide presents <strong>real-world optimization case studies</strong> showing how to transform slow CUDA code into highly optimized kernels. Each case study shows:
-- Initial naive implementation
-- Performance bottlenecks identified
-- Step-by-step optimizations
-- Final performance gains</p>
+<p>This guide presents <strong>real-world optimization case studies</strong> showing how to transform slow CUDA code into highly optimized kernels. Each case study shows:</p>
+<ul>
+<li>Initial naive implementation</li>
+<li>Performance bottlenecks identified</li>
+<li>Step-by-step optimizations</li>
+<li>Final performance gains</li>
+</ul>
 <hr />
 <h2 id="table-of-contents">Table of Contents</h2>
 <ol>
@@ -14026,7 +14671,7 @@ nsys profile --stats=true ./myapp
 <li><strong>Consider algorithmic changes</strong>: Sometimes O(n²) → O(n log n) beats any kernel optimization</li>
 </ol>
 <p><strong>Remember</strong>: Premature optimization is evil, but <em>measured</em> optimization is engineering! 🚀</p>` },
-  { name: `18. Graph Algorithms`, path: `16_graph_algorithms.cu`, dir: ``, body: `<h1 id="16_graph_algorithmscu">16_graph_algorithms.cu</h1>
+  { name: `18. Graph Algorithms`, path: `16_graph_algorithms.cu`, dir: ``, words: 2604, mins: 13, body: `<h1 id="16_graph_algorithmscu">16_graph_algorithms.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 16: Graph Algorithms
  * 
@@ -14789,7 +15434,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `19. Advanced Memory`, path: `17_advanced_memory.cu`, dir: ``, body: `<h1 id="17_advanced_memorycu">17_advanced_memory.cu</h1>
+  { name: `19. Advanced Memory`, path: `17_advanced_memory.cu`, dir: ``, words: 2098, mins: 10, body: `<h1 id="17_advanced_memorycu">17_advanced_memory.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 17: Advanced Memory Techniques
  * 
@@ -15396,7 +16041,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `20. Ml Primitives`, path: `18_ml_primitives.cu`, dir: ``, body: `<h1 id="18_ml_primitivescu">18_ml_primitives.cu</h1>
+  { name: `20. Ml Primitives`, path: `18_ml_primitives.cu`, dir: ``, words: 3164, mins: 16, body: `<h1 id="18_ml_primitivescu">18_ml_primitives.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 18: Machine Learning Primitives
  * 
@@ -16200,7 +16845,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `21. Multi Gpu`, path: `19_multi_gpu.cu`, dir: ``, body: `<h1 id="19_multi_gpucu">19_multi_gpu.cu</h1>
+  { name: `21. Multi Gpu`, path: `19_multi_gpu.cu`, dir: ``, words: 2538, mins: 13, body: `<h1 id="19_multi_gpucu">19_multi_gpu.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 19: Multi-GPU Programming
  * 
@@ -16875,7 +17520,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `22. Testing Debugging`, path: `20_testing_debugging.md`, dir: ``, body: `<h1 id="cuda-testing-and-debugging-guide">CUDA Testing and Debugging Guide</h1>
+  { name: `22. Testing Debugging`, path: `20_testing_debugging.md`, dir: ``, words: 2081, mins: 10, body: `<h1 id="cuda-testing-and-debugging-guide">CUDA Testing and Debugging Guide</h1>
 <h2 id="comprehensive-guide-to-testing-debugging-and-validation">Comprehensive Guide to Testing, Debugging, and Validation</h2>
 <hr />
 <h2 id="table-of-contents">Table of Contents</h2>
@@ -17220,11 +17865,13 @@ __global__ void debugKernel(float *data, int n) {
     }
 }
 </code></pre>
-<p><strong>Important</strong>: 
-- <code>printf</code> has limited buffer (~1MB)
-- Flush with <code>cudaDeviceSynchronize()</code>
-- Can impact performance
-- Remove for production</p>
+<p><strong>Important</strong>: </p>
+<ul>
+<li><code>printf</code> has limited buffer (~1MB)</li>
+<li>Flush with <code>cudaDeviceSynchronize()</code></li>
+<li>Can impact performance</li>
+<li>Remove for production</li>
+</ul>
 <h3 id="4-nvidia-nsight-systems">4. NVIDIA Nsight Systems</h3>
 <p><strong>Purpose</strong>: System-wide profiling</p>
 <pre><code class="language-bash"># Profile application
@@ -17552,7 +18199,7 @@ jobs:
 </code></pre>
 <hr />
 <p><strong>Remember</strong>: Good testing catches bugs early. Good debugging finds them quickly. Together, they make CUDA development productive!</p>` },
-  { name: `23. Deep Learning`, path: `21_deep_learning.cu`, dir: ``, body: `<h1 id="21_deep_learningcu">21_deep_learning.cu</h1>
+  { name: `23. Deep Learning`, path: `21_deep_learning.cu`, dir: ``, words: 4400, mins: 22, body: `<h1 id="21_deep_learningcu">21_deep_learning.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 21: Deep Learning from Scratch
  * 
@@ -18671,7 +19318,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `24. Modern Cuda`, path: `22_modern_cuda.cu`, dir: ``, body: `<h1 id="22_modern_cudacu">22_modern_cuda.cu</h1>
+  { name: `24. Modern Cuda`, path: `22_modern_cuda.cu`, dir: ``, words: 4395, mins: 22, body: `<h1 id="22_modern_cudacu">22_modern_cuda.cu</h1>
 <pre><code class="language-cuda">/*
  * CUDA Tutorial - Part 22: Modern CUDA Programming (2024-2026)
  *
@@ -19669,7 +20316,7 @@ int main(void) {
  */
 
 </code></pre>` },
-  { name: `25. All Examples Complete`, path: `ALL_EXAMPLES_COMPLETE.md`, dir: ``, body: `<h1 id="-all-cuda-examples-complete-">🎊 ALL CUDA EXAMPLES COMPLETE! 🎊</h1>
+  { name: `25. All Examples Complete`, path: `ALL_EXAMPLES_COMPLETE.md`, dir: ``, words: 1247, mins: 6, body: `<h1 id="-all-cuda-examples-complete-">🎊 ALL CUDA EXAMPLES COMPLETE! 🎊</h1>
 <h2 id="-every-single-example-created-successfully">✅ <strong>Every Single Example Created Successfully!</strong></h2>
 <hr />
 <h2 id="-complete-file-list">📦 <strong>Complete File List</strong></h2>
@@ -19871,15 +20518,17 @@ int main(void) {
 <h2 id="-newly-added-files-19--20">🌟 <strong>Newly Added Files (19 &amp; 20)</strong></h2>
 <h3 id="19_multi_gpucu--new"><strong>19_multi_gpu.cu</strong> ✅ NEW!</h3>
 <p><strong>Multi-GPU Programming</strong> (650+ lines)</p>
-<p><strong>Topics Covered:</strong>
-- ✅ Device enumeration and selection
-- ✅ Peer-to-peer (P2P) memory access
-- ✅ Multi-GPU data parallelism
-- ✅ Multi-GPU matrix multiplication
-- ✅ GPU-Direct communication
-- ✅ Multi-stream multi-GPU
-- ✅ Unified Memory with multiple GPUs
-- ✅ Load balancing strategies</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>✅ Device enumeration and selection</li>
+<li>✅ Peer-to-peer (P2P) memory access</li>
+<li>✅ Multi-GPU data parallelism</li>
+<li>✅ Multi-GPU matrix multiplication</li>
+<li>✅ GPU-Direct communication</li>
+<li>✅ Multi-stream multi-GPU</li>
+<li>✅ Unified Memory with multiple GPUs</li>
+<li>✅ Load balancing strategies</li>
+</ul>
 <p><strong>Key Concepts:</strong></p>
 <pre><code>System Topology:
    CPU
@@ -19898,29 +20547,33 @@ GPU 0 (Fast):  60% work
 GPU 1 (Slow):  40% work
 Finish simultaneously!
 </code></pre>
-<p><strong>Code Sections:</strong>
-- Device properties query
-- P2P enablement and testing
-- Data parallel vector operations
-- Work distribution algorithms
-- Unified Memory management
-- Performance-based load balancing</p>
+<p><strong>Code Sections:</strong></p>
+<ul>
+<li>Device properties query</li>
+<li>P2P enablement and testing</li>
+<li>Data parallel vector operations</li>
+<li>Work distribution algorithms</li>
+<li>Unified Memory management</li>
+<li>Performance-based load balancing</li>
+</ul>
 <hr />
 <h3 id="20_testing_debuggingmd--new"><strong>20_testing_debugging.md</strong> ✅ NEW!</h3>
 <p><strong>Testing &amp; Debugging Guide</strong> (700+ lines)</p>
-<p><strong>Topics Covered:</strong>
-- ✅ Testing strategies (pyramid)
-- ✅ Unit testing CUDA kernels
-- ✅ cuda-memcheck usage
-- ✅ cuda-gdb interactive debugging
-- ✅ printf debugging in kernels
-- ✅ Nsight Systems profiling
-- ✅ Nsight Compute analysis
-- ✅ Common bugs and solutions
-- ✅ Performance testing
-- ✅ Regression testing
-- ✅ Continuous integration
-- ✅ Best practices</p>
+<p><strong>Topics Covered:</strong></p>
+<ul>
+<li>✅ Testing strategies (pyramid)</li>
+<li>✅ Unit testing CUDA kernels</li>
+<li>✅ cuda-memcheck usage</li>
+<li>✅ cuda-gdb interactive debugging</li>
+<li>✅ printf debugging in kernels</li>
+<li>✅ Nsight Systems profiling</li>
+<li>✅ Nsight Compute analysis</li>
+<li>✅ Common bugs and solutions</li>
+<li>✅ Performance testing</li>
+<li>✅ Regression testing</li>
+<li>✅ Continuous integration</li>
+<li>✅ Best practices</li>
+</ul>
 <p><strong>Testing Pyramid:</strong></p>
 <pre><code>      ┌─────────────────┐
       │  Integration    │  ← Few, slow
@@ -19933,20 +20586,24 @@ Finish simultaneously!
 │  (Host code)                 │
 └──────────────────────────────┘
 </code></pre>
-<p><strong>Debugging Tools Covered:</strong>
-- cuda-memcheck (memory errors)
-- cuda-gdb (interactive debugging)
-- printf (simple debugging)
-- Nsight Systems (system profiling)
-- Nsight Compute (kernel profiling)</p>
-<p><strong>Common Bugs Explained:</strong>
-- Race conditions → Use atomics
-- Off-by-one errors → Bounds checking
-- Uninitialized memory → cudaMemset
-- __syncthreads() deadlocks → Unconditional barriers
-- Memory leaks → Always cudaFree
-- Incorrect grid size → Ceiling division
-- Pointer confusion → Separate host/device</p>
+<p><strong>Debugging Tools Covered:</strong></p>
+<ul>
+<li>cuda-memcheck (memory errors)</li>
+<li>cuda-gdb (interactive debugging)</li>
+<li>printf (simple debugging)</li>
+<li>Nsight Systems (system profiling)</li>
+<li>Nsight Compute (kernel profiling)</li>
+</ul>
+<p><strong>Common Bugs Explained:</strong></p>
+<ul>
+<li>Race conditions → Use atomics</li>
+<li>Off-by-one errors → Bounds checking</li>
+<li>Uninitialized memory → cudaMemset</li>
+<li>__syncthreads() deadlocks → Unconditional barriers</li>
+<li>Memory leaks → Always cudaFree</li>
+<li>Incorrect grid size → Ceiling division</li>
+<li>Pointer confusion → Separate host/device</li>
+</ul>
 <p><strong>Example Test Code:</strong></p>
 <pre><code class="language-cpp">bool testVectorAdd() {
     // Allocate, initialize
@@ -19959,47 +20616,59 @@ Finish simultaneously!
 <hr />
 <h2 id="-complete-coverage-map">📊 <strong>Complete Coverage Map</strong></h2>
 <h3 id="-every-topic-covered">✅ <strong>Every Topic Covered</strong></h3>
-<p><strong>Fundamentals:</strong>
-- ✅ CUDA basics &amp; architecture
-- ✅ Memory hierarchy (all types)
-- ✅ Thread organization (1D/2D/3D)
-- ✅ Synchronization primitives
-- ✅ Error handling</p>
-<p><strong>Optimization:</strong>
-- ✅ Shared memory tiling
-- ✅ Memory coalescing
-- ✅ Bank conflict avoidance
-- ✅ Warp-level operations
-- ✅ Atomic optimization
-- ✅ Stream concurrency</p>
-<p><strong>Algorithms:</strong>
-- ✅ Linear algebra (GEMM, transpose, reduction)
-- ✅ Image processing (7 filters)
-- ✅ Sorting (4 algorithms)
-- ✅ Graph algorithms (6 methods)
-- ✅ Scientific computing (5 simulations)</p>
-<p><strong>Machine Learning:</strong>
-- ✅ All activation functions
-- ✅ Normalization layers
-- ✅ Loss functions
-- ✅ Dropout &amp; regularization
-- ✅ Attention mechanisms
-- ✅ Full neural networks
-- ✅ Deep learning progression</p>
-<p><strong>Advanced:</strong>
-- ✅ Dynamic parallelism
-- ✅ Cooperative groups
-- ✅ Unified Memory
-- ✅ Texture memory
-- ✅ Multi-GPU programming ✨ NEW
-- ✅ Lock-free algorithms
-- ✅ P2P communication ✨ NEW</p>
-<p><strong>Development:</strong>
-- ✅ Profiling (Nsight Systems/Compute)
-- ✅ Debugging (cuda-gdb, memcheck)
-- ✅ Testing strategies ✨ NEW
-- ✅ Performance analysis
-- ✅ Best practices</p>
+<p><strong>Fundamentals:</strong></p>
+<ul>
+<li>✅ CUDA basics &amp; architecture</li>
+<li>✅ Memory hierarchy (all types)</li>
+<li>✅ Thread organization (1D/2D/3D)</li>
+<li>✅ Synchronization primitives</li>
+<li>✅ Error handling</li>
+</ul>
+<p><strong>Optimization:</strong></p>
+<ul>
+<li>✅ Shared memory tiling</li>
+<li>✅ Memory coalescing</li>
+<li>✅ Bank conflict avoidance</li>
+<li>✅ Warp-level operations</li>
+<li>✅ Atomic optimization</li>
+<li>✅ Stream concurrency</li>
+</ul>
+<p><strong>Algorithms:</strong></p>
+<ul>
+<li>✅ Linear algebra (GEMM, transpose, reduction)</li>
+<li>✅ Image processing (7 filters)</li>
+<li>✅ Sorting (4 algorithms)</li>
+<li>✅ Graph algorithms (6 methods)</li>
+<li>✅ Scientific computing (5 simulations)</li>
+</ul>
+<p><strong>Machine Learning:</strong></p>
+<ul>
+<li>✅ All activation functions</li>
+<li>✅ Normalization layers</li>
+<li>✅ Loss functions</li>
+<li>✅ Dropout &amp; regularization</li>
+<li>✅ Attention mechanisms</li>
+<li>✅ Full neural networks</li>
+<li>✅ Deep learning progression</li>
+</ul>
+<p><strong>Advanced:</strong></p>
+<ul>
+<li>✅ Dynamic parallelism</li>
+<li>✅ Cooperative groups</li>
+<li>✅ Unified Memory</li>
+<li>✅ Texture memory</li>
+<li>✅ Multi-GPU programming ✨ NEW</li>
+<li>✅ Lock-free algorithms</li>
+<li>✅ P2P communication ✨ NEW</li>
+</ul>
+<p><strong>Development:</strong></p>
+<ul>
+<li>✅ Profiling (Nsight Systems/Compute)</li>
+<li>✅ Debugging (cuda-gdb, memcheck)</li>
+<li>✅ Testing strategies ✨ NEW</li>
+<li>✅ Performance analysis</li>
+<li>✅ Best practices</li>
+</ul>
 <hr />
 <h2 id="-build--run-everything">🚀 <strong>Build &amp; Run Everything</strong></h2>
 <h3 id="compile-all-examples"><strong>Compile All Examples:</strong></h3>
@@ -20020,26 +20689,36 @@ cat 20_testing_debugging.md
 <hr />
 <h2 id="-learning-paths-updated">🎓 <strong>Learning Paths Updated</strong></h2>
 <h3 id="complete-path-now-with-19--20"><strong>Complete Path (Now with 19 &amp; 20)</strong></h3>
-<p><strong>Week 1-2: Foundations</strong>
-- 01-04: Basics
-- 05-06: Optimization</p>
-<p><strong>Week 3: Advanced</strong>
-- 07-08: Streams, dynamic parallelism
-- 17: Advanced memory
-- 19: Multi-GPU ✨ NEW</p>
-<p><strong>Week 4: Applications</strong>
-- 12: Image processing
-- 13: Sorting
-- 14: Scientific computing
-- 16: Graph algorithms</p>
-<p><strong>Week 5: Machine Learning</strong>
-- 18: ML primitives
-- 21: Deep learning</p>
-<p><strong>Week 6: Mastery</strong>
-- 09: Profiling
-- 10: Architecture
-- 15: Optimization case studies
-- 20: Testing &amp; debugging ✨ NEW</p>
+<p><strong>Week 1-2: Foundations</strong></p>
+<ul>
+<li>01-04: Basics</li>
+<li>05-06: Optimization</li>
+</ul>
+<p><strong>Week 3: Advanced</strong></p>
+<ul>
+<li>07-08: Streams, dynamic parallelism</li>
+<li>17: Advanced memory</li>
+<li>19: Multi-GPU ✨ NEW</li>
+</ul>
+<p><strong>Week 4: Applications</strong></p>
+<ul>
+<li>12: Image processing</li>
+<li>13: Sorting</li>
+<li>14: Scientific computing</li>
+<li>16: Graph algorithms</li>
+</ul>
+<p><strong>Week 5: Machine Learning</strong></p>
+<ul>
+<li>18: ML primitives</li>
+<li>21: Deep learning</li>
+</ul>
+<p><strong>Week 6: Mastery</strong></p>
+<ul>
+<li>09: Profiling</li>
+<li>10: Architecture</li>
+<li>15: Optimization case studies</li>
+<li>20: Testing &amp; debugging ✨ NEW</li>
+</ul>
 <hr />
 <h2 id="-what-makes-this-tutorial-special">💡 <strong>What Makes This Tutorial Special</strong></h2>
 <h3 id="1-truly-complete"><strong>1. Truly Complete</strong></h3>
@@ -20164,7 +20843,7 @@ everything is documented, explained, and ready to run!</p>
 <em>Files: 22 tutorials + documentation</em><br />
 <em>Lines: 17,000+ heavily commented</em><br />
 <em>Coverage: Basics → Advanced → Multi-GPU → Deep Learning</em></p>` },
-  { name: `26. Final Summary`, path: `FINAL_SUMMARY.md`, dir: ``, body: `<h1 id="-cuda-tutorial---complete">🎉 CUDA Tutorial - Complete!</h1>
+  { name: `26. Final Summary`, path: `FINAL_SUMMARY.md`, dir: ``, words: 1357, mins: 7, body: `<h1 id="-cuda-tutorial---complete">🎉 CUDA Tutorial - Complete!</h1>
 <hr />
 <h3 id="-core-tutorial-files-19-files"><strong>🔥 Core Tutorial Files: 19 Files</strong></h3>
 <table>
@@ -20538,50 +21217,68 @@ everything is documented, explained, and ready to run!</p>
 <hr />
 <h3 id="-deep-learning-21_deep_learningcu-">✅ <strong>Deep Learning</strong> (21_deep_learning.cu) ⭐⭐⭐</h3>
 <p><strong>Progressive Tutorial</strong>:</p>
-<p><strong>Level 1: Linear Regression</strong>
-- Single neuron
-- Gradient descent
-- MSE loss
-- Training convergence</p>
-<p><strong>Level 2: Logistic Regression</strong>
-- Binary classification
-- Sigmoid activation
-- Cross-entropy loss</p>
-<p><strong>Level 3: Multi-class Classification</strong>
-- Softmax function
-- One-hot encoding
-- Multi-class loss</p>
-<p><strong>Level 4: Neural Networks</strong>
-- Multiple layers
-- ReLU activation
-- Backpropagation</p>
-<p><strong>Level 5: CNNs</strong>
-- Conv2D layers
-- Max pooling
-- Feature extraction</p>
-<p><strong>Level 6: Object Detection</strong>
-- Bounding boxes
-- IoU computation
-- Non-maximum suppression</p>
+<p><strong>Level 1: Linear Regression</strong></p>
+<ul>
+<li>Single neuron</li>
+<li>Gradient descent</li>
+<li>MSE loss</li>
+<li>Training convergence</li>
+</ul>
+<p><strong>Level 2: Logistic Regression</strong></p>
+<ul>
+<li>Binary classification</li>
+<li>Sigmoid activation</li>
+<li>Cross-entropy loss</li>
+</ul>
+<p><strong>Level 3: Multi-class Classification</strong></p>
+<ul>
+<li>Softmax function</li>
+<li>One-hot encoding</li>
+<li>Multi-class loss</li>
+</ul>
+<p><strong>Level 4: Neural Networks</strong></p>
+<ul>
+<li>Multiple layers</li>
+<li>ReLU activation</li>
+<li>Backpropagation</li>
+</ul>
+<p><strong>Level 5: CNNs</strong></p>
+<ul>
+<li>Conv2D layers</li>
+<li>Max pooling</li>
+<li>Feature extraction</li>
+</ul>
+<p><strong>Level 6: Object Detection</strong></p>
+<ul>
+<li>Bounding boxes</li>
+<li>IoU computation</li>
+<li>Non-maximum suppression</li>
+</ul>
 <p><strong>Performance</strong>: Real training examples with convergence!</p>
 <hr />
 <h3 id="-synchronization-guide-gpu_locks_and_synchronization_guidemd-">✅ <strong>Synchronization Guide</strong> (GPU_LOCKS_AND_SYNCHRONIZATION_GUIDE.md) ⭐⭐</h3>
 <p><strong>41-Page Comprehensive Guide</strong>:</p>
-<p><strong>Section 1-4: Fundamentals</strong>
-- CPU vs GPU locks
-- Complete atomic operations reference
-- Spinlock implementation &amp; problems
-- Semaphore patterns</p>
-<p><strong>Section 5-8: Advanced</strong>
-- Lock-free algorithms
-- Warp-level synchronization
-- Block-level barriers
-- Grid-level strategies</p>
-<p><strong>Section 9-12: Practical</strong>
-- Performance comparisons (2000x differences!)
-- Best practices &amp; decision trees
-- Common patterns (histogram, reduction, etc.)
-- Debugging strategies</p>
+<p><strong>Section 1-4: Fundamentals</strong></p>
+<ul>
+<li>CPU vs GPU locks</li>
+<li>Complete atomic operations reference</li>
+<li>Spinlock implementation &amp; problems</li>
+<li>Semaphore patterns</li>
+</ul>
+<p><strong>Section 5-8: Advanced</strong></p>
+<ul>
+<li>Lock-free algorithms</li>
+<li>Warp-level synchronization</li>
+<li>Block-level barriers</li>
+<li>Grid-level strategies</li>
+</ul>
+<p><strong>Section 9-12: Practical</strong></p>
+<ul>
+<li>Performance comparisons (2000x differences!)</li>
+<li>Best practices &amp; decision trees</li>
+<li>Common patterns (histogram, reduction, etc.)</li>
+<li>Debugging strategies</li>
+</ul>
 <p><strong>Format</strong>: Production-ready documentation with benchmarks</p>
 <hr />
 <h2 id="-build--run">🚀 <strong>Build &amp; Run</strong></h2>
@@ -20810,7 +21507,7 @@ make memcheck-12_image_processing
 <em>Tutorial includes: Basics → Intermediate → Advanced → Deep Learning</em>
 <em>Everything from &ldquo;Hello World&rdquo; to Convolutional Neural Networks</em>
 <em>Total: 29 files, 16,000+ lines, 85+ algorithms, 250+ diagrams</em></p>` },
-  { name: `27. Gpu Locks And Synchronization`, path: `gpu_locks_and_synchronization.cu`, dir: ``, body: `<h1 id="gpu_locks_and_synchronizationcu">gpu_locks_and_synchronization.cu</h1>
+  { name: `27. Gpu Locks And Synchronization`, path: `gpu_locks_and_synchronization.cu`, dir: ``, words: 2157, mins: 11, body: `<h1 id="gpu_locks_and_synchronizationcu">gpu_locks_and_synchronization.cu</h1>
 <pre><code class="language-cuda">/*
  * GPU Locks and Critical Sections - Complete Guide
  * 
@@ -21374,7 +22071,7 @@ int main(void) {
 
 
 </code></pre>` },
-  { name: `28. Gpu Locks And Synchronization Guide`, path: `GPU_LOCKS_AND_SYNCHRONIZATION_GUIDE.md`, dir: ``, body: `<h1 id="gpu-locks-and-critical-sections---complete-guide">GPU Locks and Critical Sections - Complete Guide</h1>
+  { name: `28. Gpu Locks And Synchronization Guide`, path: `GPU_LOCKS_AND_SYNCHRONIZATION_GUIDE.md`, dir: ``, words: 7570, mins: 38, body: `<h1 id="gpu-locks-and-critical-sections---complete-guide">GPU Locks and Critical Sections - Complete Guide</h1>
 <h2 id="understanding-synchronization-in-cuda-programming">Understanding Synchronization in CUDA Programming</h2>
 <hr />
 <h2 id="table-of-contents">Table of Contents</h2>
@@ -21888,11 +22585,13 @@ semaphore_signal(&amp;allocation_sem);
 ╚══════════════════════════════════════════════════════════════╝
 </code></pre>
 <h3 id="warning-same-issues-as-spinlocks">Warning: Same Issues as Spinlocks</h3>
-<p>Semaphores on GPU suffer from <strong>similar problems</strong> as spinlocks:
-- ❌ Busy-waiting wastes cycles
-- ❌ Warp divergence when waiting
-- ❌ No deadlock detection
-- ❌ Poor scalability</p>
+<p>Semaphores on GPU suffer from <strong>similar problems</strong> as spinlocks:</p>
+<ul>
+<li>❌ Busy-waiting wastes cycles</li>
+<li>❌ Warp divergence when waiting</li>
+<li>❌ No deadlock detection</li>
+<li>❌ Poor scalability</li>
+</ul>
 <p><strong>Recommendation</strong>: Use lock-free algorithms instead!</p>
 <hr />
 <h2 id="lock-free-algorithms">Lock-Free Algorithms</h2>
@@ -22502,14 +23201,18 @@ cudaDeviceSynchronize();
 // Phase1 → [ALL blocks finish] → Phase2
 // Perfect synchronization! ✓
 </code></pre>
-<p><strong>Advantages:</strong>
-- ✓ Guaranteed synchronization
-- ✓ Clean and simple
-- ✓ Matches GPU architecture
-- ✓ No risk of deadlock</p>
-<p><strong>Disadvantages:</strong>
-- ⚠️ Kernel launch overhead (~10-20 μs)
-- ⚠️ State must be in global memory</p>
+<p><strong>Advantages:</strong></p>
+<ul>
+<li>✓ Guaranteed synchronization</li>
+<li>✓ Clean and simple</li>
+<li>✓ Matches GPU architecture</li>
+<li>✓ No risk of deadlock</li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul>
+<li>⚠️ Kernel launch overhead (~10-20 μs)</li>
+<li>⚠️ State must be in global memory</li>
+</ul>
 <h3 id="solution-2-cooperative-groups-modern-cuda">Solution 2: Cooperative Groups (Modern CUDA)</h3>
 <pre><code class="language-cpp">#include &lt;cooperative_groups.h&gt;
 namespace cg = cooperative_groups;
@@ -22540,10 +23243,12 @@ cudaLaunchCooperativeKernel((void*)cooperativeKernel,
                            gridSize, blockSize,
                            args);
 </code></pre>
-<p><strong>Requirements:</strong>
-- Compute capability &gt;= 6.0
-- Special launch API
-- Grid size limits (must fit on GPU simultaneously)</p>
+<p><strong>Requirements:</strong></p>
+<ul>
+<li>Compute capability &gt;= 6.0</li>
+<li>Special launch API</li>
+<li>Grid size limits (must fit on GPU simultaneously)</li>
+</ul>
 <h3 id="solution-3-atomic-counter-barrier-risky">Solution 3: Atomic Counter Barrier (Risky!)</h3>
 <pre><code class="language-cpp">__device__ void gridBarrier(int *counter, int num_blocks) {
     __shared__ bool am_i_last;
@@ -22581,11 +23286,13 @@ __global__ void kernelWithGridBarrier(int *data, int *counter, int n) {
     // ...
 }
 </code></pre>
-<p><strong>⚠️ WARNING</strong>: This is DANGEROUS!
-- Can deadlock if blocks don&rsquo;t fit on GPU simultaneously
-- Wastes cycles (busy-waiting)
-- No forward progress guarantee
-- <strong>DON&rsquo;T USE IN PRODUCTION</strong></p>
+<p><strong>⚠️ WARNING</strong>: This is DANGEROUS!</p>
+<ul>
+<li>Can deadlock if blocks don&rsquo;t fit on GPU simultaneously</li>
+<li>Wastes cycles (busy-waiting)</li>
+<li>No forward progress guarantee</li>
+<li><strong>DON&rsquo;T USE IN PRODUCTION</strong></li>
+</ul>
 <h3 id="solution-4-persistent-kernels">Solution 4: Persistent Kernels</h3>
 <pre><code class="language-cpp">__global__ void persistentKernel(int *data, int *work_queue, 
                                   int num_tasks) {
@@ -22604,10 +23311,12 @@ __global__ void kernelWithGridBarrier(int *data, int *counter, int n) {
     // Implicit grid-wide synchronization at kernel end
 }
 </code></pre>
-<p><strong>Benefits:</strong>
-- No repeated kernel launches
-- Amortizes launch overhead
-- Dynamic load balancing</p>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>No repeated kernel launches</li>
+<li>Amortizes launch overhead</li>
+<li>Dynamic load balancing</li>
+</ul>
 <h3 id="comparison">Comparison</h3>
 <pre><code>╔══════════════════════════════════════════════════════════════╗
 ║ Method              │ Safety  │ Performance │ Complexity     ║
@@ -23062,10 +23771,12 @@ __device__ int blockScan(int val) {
 <h2 id="debugging">Debugging and Troubleshooting</h2>
 <h3 id="common-issues">Common Issues</h3>
 <h4 id="issue-1-race-condition"><strong>Issue 1: Race Condition</strong></h4>
-<p><strong>Symptoms:</strong>
-- Results vary between runs
-- Incorrect output
-- Works with fewer threads, fails with more</p>
+<p><strong>Symptoms:</strong></p>
+<ul>
+<li>Results vary between runs</li>
+<li>Incorrect output</li>
+<li>Works with fewer threads, fails with more</li>
+</ul>
 <p><strong>Example:</strong></p>
 <pre><code class="language-cpp">// Bug
 int temp = *shared_counter;
@@ -23083,10 +23794,12 @@ cuda-memcheck --tool racecheck ./myprogram
 # &quot;Race reported between Write access and Read access&quot;
 </code></pre>
 <h4 id="issue-2-deadlock"><strong>Issue 2: Deadlock</strong></h4>
-<p><strong>Symptoms:</strong>
-- Program hangs
-- GPU unresponsive
-- Needs hard reset</p>
+<p><strong>Symptoms:</strong></p>
+<ul>
+<li>Program hangs</li>
+<li>GPU unresponsive</li>
+<li>Needs hard reset</li>
+</ul>
 <p><strong>Common Causes:</strong></p>
 <pre><code class="language-cpp">// Conditional __syncthreads()
 if (threadIdx.x &lt; 128) {
@@ -23109,10 +23822,12 @@ if (threadIdx.x &lt; 128) {
 atomicAdd(&amp;counter, 1);
 </code></pre>
 <h4 id="issue-3-warp-divergence"><strong>Issue 3: Warp Divergence</strong></h4>
-<p><strong>Symptoms:</strong>
-- Much slower than expected
-- Low occupancy
-- Threads idle</p>
+<p><strong>Symptoms:</strong></p>
+<ul>
+<li>Much slower than expected</li>
+<li>Low occupancy</li>
+<li>Threads idle</li>
+</ul>
 <p><strong>Detection:</strong></p>
 <pre><code class="language-bash"># Profile with Nsight Compute
 ncu --metrics smsp__sass_branch_targets_threads_divergent ./myprogram
@@ -23131,10 +23846,12 @@ if (threadIdx.x % 2 == 0) {
 atomicAdd(&amp;counter, 1);  // All threads make progress
 </code></pre>
 <h4 id="issue-4-atomic-contention"><strong>Issue 4: Atomic Contention</strong></h4>
-<p><strong>Symptoms:</strong>
-- Slow despite using atomics
-- GPU underutilized
-- Long stalls</p>
+<p><strong>Symptoms:</strong></p>
+<ul>
+<li>Slow despite using atomics</li>
+<li>GPU underutilized</li>
+<li>Long stalls</li>
+</ul>
 <p><strong>Detection:</strong></p>
 <pre><code class="language-bash">ncu --metrics l1tex__average_t_sectors_per_request_pipe_lsu_mem_global_op_atom ./myprogram
 
@@ -23281,7 +23998,7 @@ kernel2&lt;&lt;&lt;...&gt;&gt;&gt;(data);
 <p><strong>File</strong>: <code>gpu_locks_and_synchronization.cu</code> contains runnable examples of all concepts!</p>
 <p><strong>Compile</strong>: <code>nvcc -o gpu_locks gpu_locks_and_synchronization.cu -O3</code><br />
 <strong>Run</strong>: <code>./gpu_locks</code></p>` },
-  { name: `29. Memory Allocation Guide`, path: `MEMORY_ALLOCATION_GUIDE.md`, dir: ``, body: `<h1 id="cuda-memory-allocation-the-complete-guide">CUDA Memory Allocation: The Complete Guide</h1>
+  { name: `29. Memory Allocation Guide`, path: `MEMORY_ALLOCATION_GUIDE.md`, dir: ``, words: 4896, mins: 24, body: `<h1 id="cuda-memory-allocation-the-complete-guide">CUDA Memory Allocation: The Complete Guide</h1>
 <h2 id="host-memory-device-memory-and-everything-in-between">Host Memory, Device Memory, and Everything In Between</h2>
 <p>This guide is a deep-dive reference for every memory allocation strategy in CUDA.
 It covers the <em>why</em>, the <em>when</em>, the <em>how</em>, and the performance implications of each
@@ -23501,16 +24218,20 @@ Step 4: Free staging buffer
 
 Total: 2 copies instead of 1
 </code></pre>
-<p><strong>Characteristics:</strong>
-- Simplest to use (standard C/C++)
-- Slowest for host↔device transfers (requires internal staging)
-- Can be swapped to disk by OS (pages may not be in RAM when DMA starts)
-- No limit beyond available virtual memory
-- Cannot be used for async transfers (<code>cudaMemcpyAsync</code> falls back to sync)</p>
-<p><strong>When to use:</strong>
-- Prototyping and non-performance-critical code
-- When allocation size is unpredictable
-- When you don&rsquo;t want to consume physical RAM exclusively</p>
+<p><strong>Characteristics:</strong></p>
+<ul>
+<li>Simplest to use (standard C/C++)</li>
+<li>Slowest for host↔device transfers (requires internal staging)</li>
+<li>Can be swapped to disk by OS (pages may not be in RAM when DMA starts)</li>
+<li>No limit beyond available virtual memory</li>
+<li>Cannot be used for async transfers (<code>cudaMemcpyAsync</code> falls back to sync)</li>
+</ul>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>Prototyping and non-performance-critical code</li>
+<li>When allocation size is unpredictable</li>
+<li>When you don&rsquo;t want to consume physical RAM exclusively</li>
+</ul>
 <hr />
 <h3 id="22-pinned-memory-cudahostalloc">2.2 Pinned Memory (cudaHostAlloc)</h3>
 <p>Page-locked (pinned) memory is locked into physical RAM and cannot be swapped
@@ -23568,18 +24289,22 @@ Total: 1 copy (direct DMA)
 </tr>
 </tbody>
 </table>
-<p><strong>Characteristics:</strong>
-- 3-4x faster transfers vs pageable (direct DMA, no staging)
-- Enables true asynchronous transfers with <code>cudaMemcpyAsync</code>
-- Enables overlapping transfers and compute (requires streams)
-- Reduces physical RAM available to the OS (pinned = not swappable)
-- Allocating too much can cause OS instability or OOM
-- Allocation itself is slower than <code>malloc</code> (OS must find contiguous physical pages)</p>
-<p><strong>When to use:</strong>
-- High-throughput data pipelines (streaming data to GPU)
-- When overlapping H2D transfer and kernel execution
-- Double/triple buffering patterns
-- Frequent small transfers where latency matters</p>
+<p><strong>Characteristics:</strong></p>
+<ul>
+<li>3-4x faster transfers vs pageable (direct DMA, no staging)</li>
+<li>Enables true asynchronous transfers with <code>cudaMemcpyAsync</code></li>
+<li>Enables overlapping transfers and compute (requires streams)</li>
+<li>Reduces physical RAM available to the OS (pinned = not swappable)</li>
+<li>Allocating too much can cause OS instability or OOM</li>
+<li>Allocation itself is slower than <code>malloc</code> (OS must find contiguous physical pages)</li>
+</ul>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>High-throughput data pipelines (streaming data to GPU)</li>
+<li>When overlapping H2D transfer and kernel execution</li>
+<li>Double/triple buffering patterns</li>
+<li>Frequent small transfers where latency matters</li>
+</ul>
 <p><strong>Rule of thumb:</strong> Pin only what you need. Don&rsquo;t pin your entire dataset.</p>
 <hr />
 <h3 id="23-write-combined-memory">2.3 Write-Combined Memory</h3>
@@ -23601,13 +24326,17 @@ CPU Write speed:  Normal        CPU Write speed:  Faster
 CPU Read speed:   Normal        CPU Read speed:   Very Slow (~10x slower)
 GPU DMA Read:     Normal        GPU DMA Read:     Faster (no snoop needed)
 </code></pre>
-<p><strong>When to use:</strong>
-- CPU produces data, GPU consumes it (one-way flow)
-- Streaming video frames to GPU
-- Never when CPU needs to read back from this buffer</p>
-<p><strong>When NOT to use:</strong>
-- CPU needs to read from this memory (extremely slow reads)
-- Bidirectional data sharing</p>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>CPU produces data, GPU consumes it (one-way flow)</li>
+<li>Streaming video frames to GPU</li>
+<li>Never when CPU needs to read back from this buffer</li>
+</ul>
+<p><strong>When NOT to use:</strong></p>
+<ul>
+<li>CPU needs to read from this memory (extremely slow reads)</li>
+<li>Bidirectional data sharing</li>
+</ul>
 <hr />
 <h3 id="24-registered-memory-cudahostregister">2.4 Registered Memory (cudaHostRegister)</h3>
 <p>Convert already-allocated pageable memory into pinned memory at runtime.
@@ -23645,10 +24374,12 @@ free(h_data);
 </tr>
 </tbody>
 </table>
-<p><strong>When to use:</strong>
-- Interfacing with libraries that allocate their own buffers
-- Memory-mapped files (mmap)
-- When refactoring existing code to use pinned transfers</p>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>Interfacing with libraries that allocate their own buffers</li>
+<li>Memory-mapped files (mmap)</li>
+<li>When refactoring existing code to use pinned transfers</li>
+</ul>
 <hr />
 <h2 id="3-device-side-memory-allocation">3. Device-Side Memory Allocation</h2>
 <h3 id="31-global-memory-cudamalloc">3.1 Global Memory (cudaMalloc)</h3>
@@ -23659,12 +24390,14 @@ cudaMalloc(&amp;d_data, N * sizeof(float));
 // ... launch kernels that use d_data ...
 cudaFree(d_data);
 </code></pre>
-<p><strong>Key characteristics:</strong>
-- Largest memory on GPU (up to 192 GB on B200, 288 GB on Blackwell Ultra)
-- High bandwidth (1-8 TB/s depending on GPU)
-- High latency (~400-800 cycles uncached)
-- Cached in L2 (all architectures) and L1 (Volta+)
-- Coalesced access is critical for performance</p>
+<p><strong>Key characteristics:</strong></p>
+<ul>
+<li>Largest memory on GPU (up to 192 GB on B200, 288 GB on Blackwell Ultra)</li>
+<li>High bandwidth (1-8 TB/s depending on GPU)</li>
+<li>High latency (~400-800 cycles uncached)</li>
+<li>Cached in L2 (all architectures) and L1 (Volta+)</li>
+<li>Coalesced access is critical for performance</li>
+</ul>
 <p><strong>Coalescing rules (what every CUDA programmer must know):</strong></p>
 <pre><code>COALESCED (good):                  STRIDED (bad):
 Warp threads access consecutive    Warp threads access with gaps
@@ -23789,16 +24522,20 @@ float val = data[threadIdx.x][0];  // All threads access bank 0
 __shared__ float data[32][33];     // 33 columns instead of 32
 float val = data[threadIdx.x][0];  // Each thread accesses different bank
 </code></pre>
-<p><strong>When to use shared memory:</strong>
-- Data reused by multiple threads in a block (tiling)
-- Inter-thread communication within a block
-- Reduction operations (partial sums)
-- Stencil computations (neighbor access)
-- Any pattern where global memory would be accessed repeatedly</p>
-<p><strong>When NOT to use:</strong>
-- Data accessed only once (shared memory staging adds overhead)
-- When you need more than what fits (spills to local/global)
-- Simple element-wise operations (no data reuse)</p>
+<p><strong>When to use shared memory:</strong></p>
+<ul>
+<li>Data reused by multiple threads in a block (tiling)</li>
+<li>Inter-thread communication within a block</li>
+<li>Reduction operations (partial sums)</li>
+<li>Stencil computations (neighbor access)</li>
+<li>Any pattern where global memory would be accessed repeatedly</li>
+</ul>
+<p><strong>When NOT to use:</strong></p>
+<ul>
+<li>Data accessed only once (shared memory staging adds overhead)</li>
+<li>When you need more than what fits (spills to local/global)</li>
+<li>Simple element-wise operations (no data reuse)</li>
+</ul>
 <hr />
 <h3 id="33-constant-memory-constant">3.3 Constant Memory (<strong>constant</strong>)</h3>
 <p>Read-only memory with a dedicated cache optimized for broadcast access
@@ -23822,15 +24559,19 @@ All threads in warp read DIFFERENT addresses: → Serialized!
                                                 Latency: up to 32 × ~5 cycles = ~160
 </code></pre>
 <p><strong>This means constant memory is ONLY fast when access is uniform within a warp.</strong></p>
-<p><strong>When to use:</strong>
-- Lookup tables read by all threads with the same index
-- Kernel configuration parameters (filter weights, physical constants)
-- Small read-only arrays (fits in 64 KB)
-- Convolution kernels (all threads apply same filter)</p>
-<p><strong>When NOT to use:</strong>
-- Per-thread different indices (serializes badly)
-- Data larger than 64 KB
-- Data that needs to be updated from device code</p>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>Lookup tables read by all threads with the same index</li>
+<li>Kernel configuration parameters (filter weights, physical constants)</li>
+<li>Small read-only arrays (fits in 64 KB)</li>
+<li>Convolution kernels (all threads apply same filter)</li>
+</ul>
+<p><strong>When NOT to use:</strong></p>
+<ul>
+<li>Per-thread different indices (serializes badly)</li>
+<li>Data larger than 64 KB</li>
+<li>Data that needs to be updated from device code</li>
+</ul>
 <hr />
 <h3 id="34-texture-memory">3.4 Texture Memory</h3>
 <p>Texture memory is global memory accessed through a read-only cache
@@ -23869,15 +24610,19 @@ cudaCreateTextureObject(&amp;tex, &amp;resDesc, &amp;texDesc, nullptr);
 cudaDestroyTextureObject(tex);
 cudaFreeArray(cuArray);
 </code></pre>
-<p><strong>When to use:</strong>
-- Image processing (2D spatial locality)
-- Volume rendering (3D data)
-- Lookup tables with interpolation (e.g., transfer functions)
-- When access pattern has spatial locality but isn&rsquo;t perfectly coalesced</p>
-<p><strong>When NOT to use:</strong>
-- Purely sequential/coalesced access (global memory is faster)
-- Write-heavy workloads (texture is read-only; use surface objects for writes)
-- When data changes frequently (copying to cudaArray has overhead)</p>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>Image processing (2D spatial locality)</li>
+<li>Volume rendering (3D data)</li>
+<li>Lookup tables with interpolation (e.g., transfer functions)</li>
+<li>When access pattern has spatial locality but isn&rsquo;t perfectly coalesced</li>
+</ul>
+<p><strong>When NOT to use:</strong></p>
+<ul>
+<li>Purely sequential/coalesced access (global memory is faster)</li>
+<li>Write-heavy workloads (texture is read-only; use surface objects for writes)</li>
+<li>When data changes frequently (copying to cudaArray has overhead)</li>
+</ul>
 <hr />
 <h3 id="35-registers">3.5 Registers</h3>
 <p>The fastest storage on the GPU. Each thread gets its own registers,
@@ -23934,11 +24679,13 @@ shared memory.</p>
 # Look for: &quot;Used N registers, M bytes lmem&quot;
 # lmem &gt; 0 means local memory is being used
 </code></pre>
-<p><strong>How to reduce local memory usage:</strong>
-- Use <code>__launch_bounds__</code> to give compiler more information
-- Reduce array sizes or use shared memory instead
-- Ensure array indices are compile-time constants when possible
-- Consider reducing per-thread work and using more threads</p>
+<p><strong>How to reduce local memory usage:</strong></p>
+<ul>
+<li>Use <code>__launch_bounds__</code> to give compiler more information</li>
+<li>Reduce array sizes or use shared memory instead</li>
+<li>Ensure array indices are compile-time constants when possible</li>
+<li>Consider reducing per-thread work and using more threads</li>
+</ul>
 <hr />
 <h2 id="4-unified--managed-memory">4. Unified / Managed Memory</h2>
 <p>Unified Memory (UM) provides a single pointer valid on both CPU and GPU.
@@ -24043,16 +24790,20 @@ cudaMemPrefetchAsync(data, size, cudaCpuDeviceId, stream);
 </tr>
 </tbody>
 </table>
-<p><strong>When to use:</strong>
-- Prototyping and rapid development
-- Complex data structures with pointers (graphs, trees, linked lists)
-- When data access patterns are unpredictable
-- Multi-GPU programming (simpler than explicit management)
-- GPU memory oversubscription (dataset larger than VRAM)</p>
-<p><strong>When NOT to use:</strong>
-- Performance-critical hot paths (explicit management is faster)
-- Known, predictable access patterns (just use cudaMemcpy)
-- Very latency-sensitive applications</p>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>Prototyping and rapid development</li>
+<li>Complex data structures with pointers (graphs, trees, linked lists)</li>
+<li>When data access patterns are unpredictable</li>
+<li>Multi-GPU programming (simpler than explicit management)</li>
+<li>GPU memory oversubscription (dataset larger than VRAM)</li>
+</ul>
+<p><strong>When NOT to use:</strong></p>
+<ul>
+<li>Performance-critical hot paths (explicit management is faster)</li>
+<li>Known, predictable access patterns (just use cudaMemcpy)</li>
+<li>Very latency-sensitive applications</li>
+</ul>
 <hr />
 <h2 id="5-stream-ordered-allocation">5. Stream-Ordered Allocation</h2>
 <p>Introduced in CUDA 11.2, stream-ordered allocation ties memory lifetime
@@ -24098,11 +24849,13 @@ props.location.type = cudaMemLocationTypeDevice;
 props.location.id = device;
 cudaMemPoolCreate(&amp;pool, &amp;props);
 </code></pre>
-<p><strong>When to use:</strong>
-- Workloads with many temporary allocations (GNNs, sparse operations)
-- Dynamic parallelism (kernels allocating device memory)
-- When you need allocation without synchronizing other streams
-- Pipeline patterns with varying memory requirements</p>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>Workloads with many temporary allocations (GNNs, sparse operations)</li>
+<li>Dynamic parallelism (kernels allocating device memory)</li>
+<li>When you need allocation without synchronizing other streams</li>
+<li>Pipeline patterns with varying memory requirements</li>
+</ul>
 <hr />
 <h2 id="6-zero-copy-memory">6. Zero-Copy Memory</h2>
 <p>Zero-copy allows the GPU to read/write host memory directly over the
@@ -24126,16 +24879,20 @@ Zero-copy (PCIe 4)   ~25 GB/s       ~10,000+ cycles
 Zero-copy (PCIe 5)   ~50 GB/s       ~8,000+ cycles
 Zero-copy (NVLink 5)  ~1.8 TB/s     Lower (coherent)
 </code></pre>
-<p><strong>When to use:</strong>
-- Data accessed only once (no reuse)
-- Dataset too large for GPU memory
-- Results written once by GPU, read once by CPU
-- Integrated GPU systems (e.g., Jetson) where CPU and GPU share memory
-- Grace-Blackwell systems with NVLink CPU-GPU (coherent, high bandwidth)</p>
-<p><strong>When NOT to use:</strong>
-- Data accessed repeatedly by GPU (copy to device memory instead)
-- Latency-sensitive random access patterns
-- High-throughput kernels (PCIe bandwidth is the bottleneck)</p>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>Data accessed only once (no reuse)</li>
+<li>Dataset too large for GPU memory</li>
+<li>Results written once by GPU, read once by CPU</li>
+<li>Integrated GPU systems (e.g., Jetson) where CPU and GPU share memory</li>
+<li>Grace-Blackwell systems with NVLink CPU-GPU (coherent, high bandwidth)</li>
+</ul>
+<p><strong>When NOT to use:</strong></p>
+<ul>
+<li>Data accessed repeatedly by GPU (copy to device memory instead)</li>
+<li>Latency-sensitive random access patterns</li>
+<li>High-throughput kernels (PCIe bandwidth is the bottleneck)</li>
+</ul>
 <hr />
 <h2 id="7-l2-cache-persistence-ampere">7. L2 Cache Persistence (Ampere+)</h2>
 <p>Starting with Ampere (sm_80), you can reserve a portion of the L2 cache
@@ -24161,10 +24918,12 @@ attr.accessPolicyWindow.num_bytes = 0;
 cudaStreamSetAttribute(stream, cudaStreamAttributeAccessPolicyWindow, &amp;attr);
 cudaCtxResetPersistingL2Cache();
 </code></pre>
-<p><strong>When to use:</strong>
-- Small, frequently-accessed lookup tables
-- Data reused across multiple kernel launches
-- Working sets smaller than L2 capacity (up to ~40 MB on A100, ~50 MB on H100)</p>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>Small, frequently-accessed lookup tables</li>
+<li>Data reused across multiple kernel launches</li>
+<li>Working sets smaller than L2 capacity (up to ~40 MB on A100, ~50 MB on H100)</li>
+</ul>
 <hr />
 <h2 id="8-tensor-memory---tmem-blackwell">8. Tensor Memory - TMEM (Blackwell)</h2>
 <p>Blackwell datacenter GPUs (sm_100) introduce <strong>Tensor Memory (TMEM)</strong>, a
@@ -24417,7 +25176,7 @@ cudaGetDeviceProperties(&amp;prop, device);
 <hr />
 <p><em>This guide is part of the CUDA Know-Hows tutorial collection.</em>
 <em>See README.md for the complete tutorial index.</em></p>` },
-  { name: `30. Quickstart`, path: `QUICKSTART.md`, dir: ``, body: `<h1 id="cuda-tutorial---quick-start-guide">CUDA Tutorial - Quick Start Guide</h1>
+  { name: `30. Quickstart`, path: `QUICKSTART.md`, dir: ``, words: 831, mins: 4, body: `<h1 id="cuda-tutorial---quick-start-guide">CUDA Tutorial - Quick Start Guide</h1>
 <h2 id="-get-started-in-5-minutes">🚀 Get Started in 5 Minutes</h2>
 <p>This is a comprehensive CUDA programming tutorial covering everything from basics to advanced topics.</p>
 <h3 id="what-youll-learn">What You&rsquo;ll Learn</h3>
@@ -24431,10 +25190,12 @@ cudaGetDeviceProperties(&amp;prop, device);
 </code></pre>
 <hr />
 <h2 id="prerequisites">Prerequisites</h2>
-<p>✅ <strong>Required:</strong>
-- NVIDIA GPU (Compute Capability &gt;= 7.0 recommended; &gt;= 8.0 for all modern features)
-- CUDA Toolkit 12.6+ installed (13.3 recommended for CUDA Tile C++)
-- Basic C/C++ knowledge</p>
+<p>✅ <strong>Required:</strong></p>
+<ul>
+<li>NVIDIA GPU (Compute Capability &gt;= 7.0 recommended; &gt;= 8.0 for all modern features)</li>
+<li>CUDA Toolkit 12.6+ installed (13.3 recommended for CUDA Tile C++)</li>
+<li>Basic C/C++ knowledge</li>
+</ul>
 <p>✅ <strong>Check Your Setup:</strong></p>
 <pre><code class="language-bash"># Verify CUDA installation
 nvcc --version
@@ -24735,27 +25496,33 @@ make list              # List all examples
 </code></pre>
 <hr />
 <h2 id="tips-for-success">Tips for Success</h2>
-<p>✅ <strong>DO:</strong>
-- Start with the basics
-- Check all return values
-- Run cuda-memcheck regularly
-- Profile before optimizing
-- Read error messages carefully</p>
-<p>❌ <strong>DON&rsquo;T:</strong>
-- Skip error checking
-- Optimize prematurely
-- Forget boundary checks
-- Ignore profiler results
-- Give up on first error</p>
+<p>✅ <strong>DO:</strong></p>
+<ul>
+<li>Start with the basics</li>
+<li>Check all return values</li>
+<li>Run cuda-memcheck regularly</li>
+<li>Profile before optimizing</li>
+<li>Read error messages carefully</li>
+</ul>
+<p>❌ <strong>DON&rsquo;T:</strong></p>
+<ul>
+<li>Skip error checking</li>
+<li>Optimize prematurely</li>
+<li>Forget boundary checks</li>
+<li>Ignore profiler results</li>
+<li>Give up on first error</li>
+</ul>
 <hr />
 <h2 id="summary">Summary</h2>
-<p>This tutorial provides:
-- ✅ 8 complete code examples
-- ✅ 2 comprehensive guides
-- ✅ Graphics and visualizations
-- ✅ Build system (Makefile)
-- ✅ Profiling instructions
-- ✅ Debugging techniques</p>
+<p>This tutorial provides:</p>
+<ul>
+<li>✅ 8 complete code examples</li>
+<li>✅ 2 comprehensive guides</li>
+<li>✅ Graphics and visualizations</li>
+<li>✅ Build system (Makefile)</li>
+<li>✅ Profiling instructions</li>
+<li>✅ Debugging techniques</li>
+</ul>
 <p><strong>Total Time:</strong> 20-30 hours for complete mastery</p>
 <p><strong>Start here:</strong> <a href="01_introduction.md">01_introduction.md</a></p>
 <hr />
@@ -24769,7 +25536,7 @@ make list              # List all examples
 <hr />
 <p><strong>Happy CUDA Programming! 🚀</strong></p>
 <p><em>Start your journey: <code>make 02_first_kernel &amp;&amp; ./02_first_kernel</code></em></p>` },
-  { name: `31. Work Allocation Guide`, path: `WORK_ALLOCATION_GUIDE.md`, dir: ``, body: `<h1 id="cuda-work-allocation-guide">CUDA Work Allocation Guide</h1>
+  { name: `31. Work Allocation Guide`, path: `WORK_ALLOCATION_GUIDE.md`, dir: ``, words: 4778, mins: 24, body: `<h1 id="cuda-work-allocation-guide">CUDA Work Allocation Guide</h1>
 <h2 id="when-and-where-to-use-blocks-grids-and-threads">When and Where to Use Blocks, Grids, and Threads</h2>
 <h3 id="the-complete-guide-to-efficient-work-distribution">The Complete Guide to Efficient Work Distribution</h3>
 <hr />
@@ -25747,12 +26514,14 @@ Minimum: numSMs × (warps per SM / warps per block)
 ╚══════════════════════════════════════════════════════════════════════════╝
 </code></pre>
 <hr />
-<p><strong>For detailed code examples, see existing tutorial files:</strong>
-- <code>04_thread_organization.cu</code> - Basic thread indexing
-- <code>11_thread_indexing_patterns.md</code> - 1D/2D/3D patterns
-- <code>15_optimization_case_studies.md</code> - Performance impact</p>
+<p><strong>For detailed code examples, see existing tutorial files:</strong></p>
+<ul>
+<li><code>04_thread_organization.cu</code> - Basic thread indexing</li>
+<li><code>11_thread_indexing_patterns.md</code> - 1D/2D/3D patterns</li>
+<li><code>15_optimization_case_studies.md</code> - Performance impact</li>
+</ul>
 <p><strong>Key insight</strong>: Start with defaults (256 threads, numSMs × 8 blocks), then profile and adjust!</p>` },
-  { name: `32. Work Allocation Summary`, path: `WORK_ALLOCATION_SUMMARY.md`, dir: ``, body: `<h1 id="cuda-work-allocation-guide---summary">CUDA Work Allocation Guide - Summary</h1>
+  { name: `32. Work Allocation Summary`, path: `WORK_ALLOCATION_SUMMARY.md`, dir: ``, words: 1169, mins: 6, body: `<h1 id="cuda-work-allocation-guide---summary">CUDA Work Allocation Guide - Summary</h1>
 <h2 id="-new-file-created">📄 New File Created</h2>
 <p><strong>File:</strong> <code>WORK_ALLOCATION_GUIDE.md</code><br />
 <strong>Size:</strong> ~35 KB<br />
@@ -25763,11 +26532,13 @@ Minimum: numSMs × (warps per SM / warps per block)
 <p>This comprehensive guide answers your questions about <strong>when and where to use blocks and grids</strong>, and <strong>how work should be allocated</strong> to CUDA hardware for efficient execution.</p>
 <h3 id="main-topics">Main Topics</h3>
 <h4 id="1-hardware-hierarchy">1. <strong>Hardware Hierarchy</strong></h4>
-<p>Complete visual breakdown of:
-- GPU Device → GPCs → TPCs → SMs → Warps → CUDA Cores
-- Resource limits per SM (threads, blocks, registers, shared memory)
-- How blocks get assigned to SMs
-- Warp scheduling and execution</p>
+<p>Complete visual breakdown of:</p>
+<ul>
+<li>GPU Device → GPCs → TPCs → SMs → Warps → CUDA Cores</li>
+<li>Resource limits per SM (threads, blocks, registers, shared memory)</li>
+<li>How blocks get assigned to SMs</li>
+<li>Warp scheduling and execution</li>
+</ul>
 <h4 id="2-mapping-work-to-hardware">2. <strong>Mapping Work to Hardware</strong></h4>
 <ul>
 <li>Software (Grid/Block/Thread) to hardware (SM/Warp/Core) mapping</li>
@@ -25776,21 +26547,25 @@ Minimum: numSMs × (warps per SM / warps per block)
 <li>Occupancy limiting factors</li>
 </ul>
 <h4 id="3-block-size-selection-">3. <strong>Block Size Selection</strong> ⭐</h4>
-<p><strong>This is critical!</strong> The guide provides:
-- Hard limits and constraints
-- Trade-offs between small (32-64), medium (128-256), and large (512-1024) blocks
-- Decision matrix for different workload types:
-  - Simple compute → 256 threads
-  - Heavy shared memory → 128-256 threads
-  - Many registers → 128-192 threads
-  - Reduction operations → 256-512 threads
-  - Image processing → 16×16 (256) threads
-  - 3D volumes → 8×8×4 (256) threads</p>
+<p><strong>This is critical!</strong> The guide provides:</p>
+<ul>
+<li>Hard limits and constraints</li>
+<li>Trade-offs between small (32-64), medium (128-256), and large (512-1024) blocks</li>
+<li>Decision matrix for different workload types:</li>
+<li>Simple compute → 256 threads</li>
+<li>Heavy shared memory → 128-256 threads</li>
+<li>Many registers → 128-192 threads</li>
+<li>Reduction operations → 256-512 threads</li>
+<li>Image processing → 16×16 (256) threads</li>
+<li>3D volumes → 8×8×4 (256) threads</li>
+</ul>
 <h4 id="4-grid-size-selection-">4. <strong>Grid Size Selection</strong> ⭐</h4>
-<p>Three main strategies with formulas:
-- <strong>Strategy 1:</strong> Cover all elements - <code>gridSize = (N + blockSize - 1) / blockSize</code>
-- <strong>Strategy 2:</strong> Saturate GPU - <code>gridSize = numSMs × (8-16)</code>
-- <strong>Strategy 3:</strong> Grid-stride loop (most flexible!)</p>
+<p>Three main strategies with formulas:</p>
+<ul>
+<li><strong>Strategy 1:</strong> Cover all elements - <code>gridSize = (N + blockSize - 1) / blockSize</code></li>
+<li><strong>Strategy 2:</strong> Saturate GPU - <code>gridSize = numSMs × (8-16)</code></li>
+<li><strong>Strategy 3:</strong> Grid-stride loop (most flexible!)</li>
+</ul>
 <h4 id="5-occupancy-optimization">5. <strong>Occupancy Optimization</strong></h4>
 <ul>
 <li>What is occupancy and why it matters</li>
@@ -25800,23 +26575,29 @@ Minimum: numSMs × (warps per SM / warps per block)
 <li>Tools: <code>cudaOccupancyMaxPotentialBlockSize</code>, <code>nvcc --ptxas-options=-v</code></li>
 </ul>
 <h4 id="6-work-distribution-patterns">6. <strong>Work Distribution Patterns</strong></h4>
-<p>Five common patterns with code examples:
-1. Element-wise (1 element per thread)
-2. 2D Image processing
-3. Grid-stride (flexible, recommended)
-4. Tiled with shared memory
-5. Reduction (tree-based)</p>
+<p>Five common patterns with code examples:</p>
+<ol>
+<li>Element-wise (1 element per thread)</li>
+<li>2D Image processing</li>
+<li>Grid-stride (flexible, recommended)</li>
+<li>Tiled with shared memory</li>
+<li>Reduction (tree-based)</li>
+</ol>
 <h4 id="7-real-world-examples">7. <strong>Real-World Examples</strong></h4>
-<p>Complete analysis for:
-- Vector addition (10M elements)
-- Matrix multiplication (1024×1024)
-- Image convolution (1920×1080)
-- Large reduction (100M elements)</p>
-<p>Each example includes:
-- Configuration choice rationale
-- Resource usage analysis
-- Occupancy calculations
-- Performance characteristics</p>
+<p>Complete analysis for:</p>
+<ul>
+<li>Vector addition (10M elements)</li>
+<li>Matrix multiplication (1024×1024)</li>
+<li>Image convolution (1920×1080)</li>
+<li>Large reduction (100M elements)</li>
+</ul>
+<p>Each example includes:</p>
+<ul>
+<li>Configuration choice rationale</li>
+<li>Resource usage analysis</li>
+<li>Occupancy calculations</li>
+<li>Performance characteristics</li>
+</ul>
 <h4 id="8-decision-framework">8. <strong>Decision Framework</strong></h4>
 <p>Step-by-step guide:</p>
 <pre><code>Step 1: Choose Block Dimensions
@@ -25845,10 +26626,12 @@ Step 4: Profile and Iterate
 ✓ Profile First: Don't optimize blindly!
 </code></pre>
 <h3 id="performance-impact-data">Performance Impact Data</h3>
-<p>Real benchmark data included showing:
-- Block size impact (32 vs 256 vs 1024 threads)
-- Grid size impact (too few blocks vs optimal)
-- Occupancy vs performance relationship</p>
+<p>Real benchmark data included showing:</p>
+<ul>
+<li>Block size impact (32 vs 256 vs 1024 threads)</li>
+<li>Grid size impact (too few blocks vs optimal)</li>
+<li>Occupancy vs performance relationship</li>
+</ul>
 <h3 id="quick-reference-table">Quick Reference Table</h3>
 <pre><code>╔═════════════════════════════════════════════════════════════╗
 ║ Problem Type     │ Block Size      │ Grid Size              ║
@@ -25884,12 +26667,14 @@ Step 4: Profile and Iterate
 </ul>
 <hr />
 <h2 id="-related-files">🔗 Related Files</h2>
-<p>This guide complements:
-- <code>04_thread_organization.cu</code> - Basic thread indexing
-- <code>11_thread_indexing_patterns.md</code> - 1D/2D/3D patterns
-- <code>10_gpu_architecture_internals.md</code> - Hardware details
-- <code>15_optimization_case_studies.md</code> - Performance optimization
-- <code>GPU_LOCKS_AND_SYNCHRONIZATION_GUIDE.md</code> - Synchronization</p>
+<p>This guide complements:</p>
+<ul>
+<li><code>04_thread_organization.cu</code> - Basic thread indexing</li>
+<li><code>11_thread_indexing_patterns.md</code> - 1D/2D/3D patterns</li>
+<li><code>10_gpu_architecture_internals.md</code> - Hardware details</li>
+<li><code>15_optimization_case_studies.md</code> - Performance optimization</li>
+<li><code>GPU_LOCKS_AND_SYNCHRONIZATION_GUIDE.md</code> - Synchronization</li>
+</ul>
 <hr />
 <h2 id="-example-configurations-analyzed">📝 Example Configurations Analyzed</h2>
 <h3 id="example-1-simple-vector-scaling">Example 1: Simple Vector Scaling</h3>
@@ -25902,18 +26687,22 @@ int gridSize = (N + 255) / 256;  // 39,063 blocks
 <pre><code class="language-cpp">dim3 blockSize(32, 32);  // 1024 threads
 dim3 gridSize(N/32, N/32);  // 4096 blocks
 </code></pre>
-<p><strong>Analysis:</strong> 
-- Shared memory: 8 KB/block
-- Bottleneck: Thread limit → 2 blocks/SM
-- Occupancy: 100% ✓</p>
+<p><strong>Analysis:</strong> </p>
+<ul>
+<li>Shared memory: 8 KB/block</li>
+<li>Bottleneck: Thread limit → 2 blocks/SM</li>
+<li>Occupancy: 100% ✓</li>
+</ul>
 <h3 id="example-3-histogram">Example 3: Histogram</h3>
 <pre><code class="language-cpp">int blockSize = 256;  // One thread per bin
 int gridSize = (N + 255) / 256;
 </code></pre>
-<p><strong>Analysis:</strong>
-- Shared memory: 1 KB/block
-- Bottleneck: Threads → 8 blocks/SM
-- Occupancy: 100% ✓</p>
+<p><strong>Analysis:</strong></p>
+<ul>
+<li>Shared memory: 1 KB/block</li>
+<li>Bottleneck: Threads → 8 blocks/SM</li>
+<li>Occupancy: 100% ✓</li>
+</ul>
 <hr />
 <h2 id="-key-formulas">🚀 Key Formulas</h2>
 <h3 id="ceiling-division-critical">Ceiling Division (Critical!)</h3>
@@ -25957,23 +26746,29 @@ where totalThreads = gridDim.x × blockDim.x
 </ol>
 <hr />
 <h2 id="-learning-path">🎓 Learning Path</h2>
-<p><strong>For this guide:</strong>
-1. Read hardware hierarchy section first
-2. Understand the mapping (software → hardware)
-3. Study block size selection carefully
-4. Learn grid sizing strategies
-5. Review real-world examples
-6. Use the decision framework
-7. Practice with your own kernels</p>
-<p><strong>Prerequisites:</strong>
-- Complete CUDA tutorials Parts 1-4
-- Understand thread hierarchy basics
-- Know how to launch kernels</p>
-<p><strong>Next Steps:</strong>
-- Apply these principles to your code
-- Profile with Nsight tools
-- Experiment with different configurations
-- Measure performance impact</p>
+<p><strong>For this guide:</strong></p>
+<ol>
+<li>Read hardware hierarchy section first</li>
+<li>Understand the mapping (software → hardware)</li>
+<li>Study block size selection carefully</li>
+<li>Learn grid sizing strategies</li>
+<li>Review real-world examples</li>
+<li>Use the decision framework</li>
+<li>Practice with your own kernels</li>
+</ol>
+<p><strong>Prerequisites:</strong></p>
+<ul>
+<li>Complete CUDA tutorials Parts 1-4</li>
+<li>Understand thread hierarchy basics</li>
+<li>Know how to launch kernels</li>
+</ul>
+<p><strong>Next Steps:</strong></p>
+<ul>
+<li>Apply these principles to your code</li>
+<li>Profile with Nsight tools</li>
+<li>Experiment with different configurations</li>
+<li>Measure performance impact</li>
+</ul>
 <hr />
 <h2 id="-quick-start">💻 Quick Start</h2>
 <pre><code class="language-bash"># Read the guide
@@ -26039,6 +26834,20 @@ function prettify(component) {
     return c.replace(/\b\w/g, l => l.toUpperCase());
 }
 
+// Like prettify(), but keeps any leading "01_"/"2-" style number as a "01. "
+// prefix so the sidebar mirrors the on-disk ordering of the documents.
+function prettifyKeepNum(component) {
+    const m = component.match(/^([0-9]+)[_-]/);
+    const prefix = m ? m[1] + '. ' : '';
+    return prefix + prettify(component);
+}
+
+const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
+function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => HTML_ESCAPES[c]); }
+function cleanName(name) { return (name || '').replace(/^\s*\d+\.\s*/, ''); }
+
+const CLOCK_ICON = '<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8.75-4.25v3.94l2.4 2.4a.75.75 0 0 1-1.06 1.06l-2.62-2.62a.75.75 0 0 1-.22-.53V3.75a.75.75 0 0 1 1.5 0Z"></path></svg>';
+
 TAB_DATA.forEach((tab, idx) => {
     const opt = document.createElement('option');
     opt.value = String(idx);
@@ -26050,6 +26859,22 @@ TAB_DATA.forEach((tab, idx) => {
     panel.id = 'panel-' + idx;
     panel.dataset.dir = tab.dir || '';
     panel.innerHTML = tab.body;
+
+    // Breadcrumb + reading-time meta line (prepended, built once).
+    const meta = document.createElement('div');
+    meta.className = 'doc-meta';
+    const crumbs = cleanName(tab.name).split(' / ');
+    const crumbHtml = crumbs.map((c, i) =>
+        '<span class="crumb">' + escapeHtml(c) + '</span>' +
+        (i < crumbs.length - 1 ? '<span class="crumb-sep">/</span>' : '')
+    ).join('');
+    const words = (tab.words || 0).toLocaleString();
+    meta.innerHTML =
+        '<span class="doc-breadcrumb">' + crumbHtml + '</span>' +
+        '<span class="doc-reading-time">' + CLOCK_ICON +
+        (tab.mins || 1) + ' min read \u00b7 ' + words + ' words</span>';
+    panel.insertBefore(meta, panel.firstChild);
+
     tabPanels.appendChild(panel);
 });
 
@@ -26094,7 +26919,7 @@ function createTreeHtml(node, parentPath = '') {
         
         const label = document.createElement('span');
         label.className = 'dir-name';
-        label.textContent = prettify(dirName);
+        label.textContent = prettifyKeepNum(dirName);
         
         header.appendChild(chevron);
         header.appendChild(folder);
@@ -26119,10 +26944,10 @@ function createTreeHtml(node, parentPath = '') {
         const a = document.createElement('a');
         a.href = '#tab-' + idx;
         
-        // Use the basename or prettified name without numbers
+        // Use the basename, keeping any leading "NN_" document number prefix.
         const baseName = tab.path.split('/').pop() || tab.name;
         let displayName = baseName.replace(/\.[a-zA-Z0-9]+$/, '');
-        displayName = prettify(displayName);
+        displayName = prettifyKeepNum(displayName);
         
         a.textContent = displayName;
         a.title = tab.name;
@@ -26237,6 +27062,23 @@ docSelect.addEventListener('change', () => {
     activateTab(parseInt(docSelect.value, 10));
 });
 
+/* Previous / next document buttons in the navbar. */
+const docPrevBtn = document.getElementById('docPrev');
+const docNextBtn = document.getElementById('docNext');
+if (docPrevBtn) docPrevBtn.addEventListener('click', () => {
+    const i = currentTabIdx();
+    if (i > 0) { pushHistory(); activateTab(i - 1); }
+});
+if (docNextBtn) docNextBtn.addEventListener('click', () => {
+    const i = currentTabIdx();
+    if (i < TAB_DATA.length - 1) { pushHistory(); activateTab(i + 1); }
+});
+
+function updateDocNav(idx) {
+    if (docPrevBtn) docPrevBtn.disabled = (idx <= 0);
+    if (docNextBtn) docNextBtn.disabled = (idx >= TAB_DATA.length - 1);
+}
+
 /* ───── Syntax highlighting ───── */
 
 function addCopyButton(pre, block) {
@@ -26291,6 +27133,18 @@ function highlightAllCode() {
 
 highlightAllCode();
 
+/* ───── Wrap tables so they scroll horizontally on narrow screens ───── */
+function wrapTables() {
+    document.querySelectorAll('.tab-content table').forEach(table => {
+        if (table.parentElement && table.parentElement.classList.contains('table-scroll')) return;
+        const wrap = document.createElement('div');
+        wrap.className = 'table-scroll';
+        table.parentNode.insertBefore(wrap, table);
+        wrap.appendChild(table);
+    });
+}
+wrapTables();
+
 /* ───── Theme toggle ───── */
 
 const HLJS_DARK = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css';
@@ -26305,34 +27159,56 @@ function getStoredTheme() {
     try { return localStorage.getItem('doc-theme'); } catch(e) { return null; }
 }
 
-function setTheme(theme) {
+const darkMql = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+function osTheme() { return (darkMql && darkMql.matches) ? 'dark' : 'light'; }
+
+// Apply a theme. `persist` is true ONLY for an explicit user action; auto/OS
+// applications must NOT write to storage, otherwise the very first auto theme
+// would look like an explicit choice and we'd stop following the OS.
+function setTheme(theme, persist) {
     document.body.setAttribute('data-theme', theme);
     hljsLink.href = theme === 'light' ? HLJS_LIGHT : HLJS_DARK;
-    themeToggleBtn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
+    themeToggleBtn.innerHTML = (theme === 'light' ? ICON_SUN : ICON_MOON);
     themeToggleBtn.title = theme === 'light'
         ? 'Switch to dark mode (Ctrl+Shift+L)'
         : 'Switch to light mode (Ctrl+Shift+L)';
-    try { localStorage.setItem('doc-theme', theme); } catch(e) {}
+    if (persist) {
+        try { localStorage.setItem('doc-theme', theme); } catch(e) {}
+    }
+}
+
+function toggleTheme() {
+    const current = document.body.getAttribute('data-theme') || 'dark';
+    setTheme(current === 'dark' ? 'light' : 'dark', true);
 }
 
 (function initTheme() {
     const stored = getStoredTheme();
-    const theme = (stored === 'light' || stored === 'dark')
-        ? stored
-        : (document.body.getAttribute('data-theme') || 'dark');
-    setTheme(theme);
+    if (stored === 'light' || stored === 'dark') {
+        setTheme(stored, false);              // explicit user choice wins
+    } else {
+        setTheme(osTheme(), false);           // otherwise follow the OS (live)
+    }
 })();
 
-themeToggleBtn.addEventListener('click', () => {
-    const current = document.body.getAttribute('data-theme') || 'dark';
-    setTheme(current === 'dark' ? 'light' : 'dark');
-});
+// Live-follow the OS appearance while the reader hasn't picked a theme manually.
+if (darkMql) {
+    const onOsChange = (e) => {
+        const stored = getStoredTheme();
+        if (stored !== 'light' && stored !== 'dark') {
+            setTheme(e.matches ? 'dark' : 'light', false);
+        }
+    };
+    if (darkMql.addEventListener) darkMql.addEventListener('change', onOsChange);
+    else if (darkMql.addListener) darkMql.addListener(onOsChange);  // older Safari
+}
+
+themeToggleBtn.addEventListener('click', toggleTheme);
 
 document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'L') {
         e.preventDefault();
-        const current = document.body.getAttribute('data-theme') || 'dark';
-        setTheme(current === 'dark' ? 'light' : 'dark');
+        toggleTheme();
     }
 });
 
@@ -26365,10 +27241,12 @@ function activateTab(idx, resetScroll) {
     }
     history.replaceState(null, null, '#tab-' + idx);
     if (typeof buildToc === 'function') buildToc(idx);
-    // Reflect the active document's title in the condensing navbar.
+    // Reflect the active document's title in the condensing navbar. Use the
+    // full name (including any leading number) so it matches the picker exactly.
     if (navDocTitle && TAB_DATA[idx]) {
-        navDocTitle.textContent = TAB_DATA[idx].name.replace(/^\s*\d+\.\s*/, '');
+        navDocTitle.textContent = TAB_DATA[idx].name;
     }
+    if (typeof updateDocNav === 'function') updateDocNav(idx);
     // Jump back to the top when switching documents so the reader starts at
     // the beginning rather than wherever the previous doc was scrolled to.
     if (resetScroll) {
@@ -26376,7 +27254,26 @@ function activateTab(idx, resetScroll) {
         document.body.classList.remove('nav-condensed');
         navLastY = 0;
     }
+    LS.set('doc-last-idx', String(idx));
 }
+
+/* ───── Lightweight state persistence (no per-scroll writes) ─────
+   Remembers the last document, sidebar/TOC open state and scroll position so
+   reopening the file resumes where you left off. Writes happen only on tab
+   switch, panel toggle and page hide -- never during scrolling. */
+const LS = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+};
+
+function persistScroll() {
+    LS.set('doc-last-idx', String(currentTabIdx()));
+    LS.set('doc-last-y', String(Math.round(window.scrollY)));
+}
+window.addEventListener('pagehide', persistScroll);
+document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') persistScroll();
+});
 
 /* ───── Search index: pre-extract plain text per block ───── */
 
@@ -26574,6 +27471,7 @@ function runSearch() {
 
 function navigateToResult(result) {
     const savedQuery = searchInput.value.trim() || result.text.substring(0, 20);
+    pushHistory();
     closeSearch();
     activateTab(result.tabIdx, false);
 
@@ -26626,6 +27524,8 @@ function clearHighlights() {
 const sidebarNav = document.getElementById('sidebarNav');
 const navList = document.getElementById('navList');
 const sidebarToggle = document.getElementById('sidebarToggle');
+const readProgress = document.getElementById('readProgress');
+const toTopBtn = document.getElementById('toTop');
 let currentTocHeadings = [];
 
 function buildToc(panelIdx) {
@@ -26636,13 +27536,51 @@ function buildToc(panelIdx) {
     const headings = panel.querySelectorAll('h1, h2, h3, h4');
     headings.forEach((h, i) => {
         if (!h.id) h.id = 'autoid-' + panelIdx + '-' + i;
+        // Capture the clean heading text once (before any permalink anchor is
+        // added) so the TOC label never picks up the trailing '#'.
+        let title = h.getAttribute('data-title');
+        if (title === null) {
+            title = h.textContent;
+            h.setAttribute('data-title', title);
+            // Add a hover-revealed permalink anchor (built lazily, only for the
+            // doc currently being viewed).
+            const perma = document.createElement('a');
+            perma.className = 'heading-anchor';
+            perma.href = '#' + h.id;
+            perma.textContent = '#';
+            perma.setAttribute('aria-label', 'Copy link to this section');
+            perma.title = 'Copy link to this section';
+            const headingId = h.id;
+            perma.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Keep the doc-content click handler from also firing (it would
+                // re-run scroll/history logic and resolve duplicate ids).
+                e.stopPropagation();
+                const url = location.href.split('#')[0] + '#' + headingId;
+                const flash = function() {
+                    perma.classList.remove('copied');
+                    // Force reflow so the animation restarts on rapid clicks.
+                    void perma.offsetWidth;
+                    perma.classList.add('copied');
+                    setTimeout(function() { perma.classList.remove('copied'); }, 1400);
+                };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(flash).catch(function() { fallbackCopy(url, flash); });
+                } else {
+                    fallbackCopy(url, flash);
+                }
+                history.replaceState(null, '', '#' + headingId);
+                scrollToTarget(h);
+            });
+            h.appendChild(perma);
+        }
         const level = h.tagName.substring(1);
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.href = '#' + h.id;
-        a.textContent = h.textContent;
+        a.textContent = title;
         a.className = 'nav-h' + level;
-        a.title = h.textContent;
+        a.title = title;
         a.dataset.headingId = h.id;
         a.addEventListener('click', function(e) {
             e.preventDefault();
@@ -26655,13 +27593,23 @@ function buildToc(panelIdx) {
     updateScrollSpy();
 }
 
+/* Single rAF-throttled scroll handler drives scroll-spy, the reading-progress
+   bar and the back-to-top button -- one listener doing all the work keeps
+   scrolling smooth (no extra runtime over the original two listeners). */
 let spyRaf = null;
 function updateScrollSpy() {
     if (spyRaf) return;
     spyRaf = requestAnimationFrame(() => {
         spyRaf = null;
-        if (currentTocHeadings.length === 0) return;
         const scrollY = window.scrollY;
+
+        // Reading progress + back-to-top (run regardless of TOC contents).
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const pct = max > 0 ? Math.min(100, (scrollY / max) * 100) : 0;
+        if (readProgress) readProgress.style.width = pct + '%';
+        if (toTopBtn) toTopBtn.classList.toggle('show', scrollY > 480);
+
+        if (currentTocHeadings.length === 0) return;
         const offset = 80;
         let activeEntry = currentTocHeadings[0];
         for (const entry of currentTocHeadings) {
@@ -26673,18 +27621,14 @@ function updateScrollSpy() {
         }
         currentTocHeadings.forEach(e => e.link.classList.remove('nav-active'));
         if (activeEntry) {
+            // Only update the highlight. Do NOT programmatically scroll either
+            // sidebar -- they should stay put and move only when the user
+            // scrolls them. (The previous code scrolled the wrong sidebar, the
+            // left document list, which made it jump to the top on every click.)
             activeEntry.link.classList.add('nav-active');
-            const linkTop = activeEntry.link.offsetTop;
-            const navH = sidebarNav.clientHeight;
-            const navScroll = sidebarNav.scrollTop;
-            if (linkTop < navScroll + 40 || linkTop > navScroll + navH - 40) {
-                sidebarNav.scrollTo({ top: linkTop - navH / 3, behavior: 'smooth' });
-            }
         }
     });
 }
-
-window.addEventListener('scroll', updateScrollSpy, { passive: true });
 
 /* ───── iOS-style condensing navbar (hide on scroll down, show on scroll up) ───── */
 function updateNavCondense() {
@@ -26701,7 +27645,18 @@ function updateNavCondense() {
     }
     navLastY = y;
 }
-window.addEventListener('scroll', updateNavCondense, { passive: true });
+
+/* One scroll listener for everything (was two). */
+window.addEventListener('scroll', function () {
+    updateNavCondense();
+    updateScrollSpy();
+}, { passive: true });
+
+if (toTopBtn) {
+    toTopBtn.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
 
 const tocSidebar = document.getElementById('tocSidebar');
 const tocToggle = document.getElementById('tocToggle');
@@ -26713,6 +27668,7 @@ function toggleSidebar() {
         tocSidebar.classList.add('collapsed');
         document.body.classList.add('toc-collapsed');
     }
+    LS.set('doc-sidebar', collapsed ? 'closed' : 'open');
 }
 
 function toggleToc() {
@@ -26722,6 +27678,7 @@ function toggleToc() {
         sidebarNav.classList.add('collapsed');
         document.body.classList.add('sidebar-collapsed');
     }
+    LS.set('doc-toc', collapsed ? 'closed' : 'open');
 }
 
 sidebarToggle.addEventListener('click', toggleSidebar);
@@ -26775,9 +27732,54 @@ function gotoAnchor(idx, anchor) {
     }
 }
 
+/* ───── Navigation history (browser-style back button) ─────
+   Whenever a link takes the reader to another section/document, remember where
+   they were (which tab + scroll position) so the navbar back button can return
+   them to exactly that spot. */
+const navBackBtn = document.getElementById('navBack');
+let navHistory = [];
+
+function currentTabIdx() {
+    const v = parseInt(docSelect.value, 10);
+    return isNaN(v) ? 0 : v;
+}
+
+function updateBackBtn() {
+    if (navBackBtn) navBackBtn.disabled = navHistory.length === 0;
+}
+
+function pushHistory() {
+    navHistory.push({ idx: currentTabIdx(), y: window.scrollY });
+    if (navHistory.length > 200) navHistory.shift();
+    updateBackBtn();
+}
+
+function navBack() {
+    const state = navHistory.pop();
+    if (!state) return;
+    activateTab(state.idx, false);
+    // Restore the exact scroll position after the panel becomes visible.
+    requestAnimationFrame(() => window.scrollTo({ top: state.y, behavior: 'auto' }));
+    updateBackBtn();
+}
+
+if (navBackBtn) navBackBtn.addEventListener('click', navBack);
+document.addEventListener('keydown', (e) => {
+    if (e.altKey && e.key === 'ArrowLeft' && !overlay.classList.contains('open')) {
+        e.preventDefault();
+        navBack();
+    }
+});
+
 document.addEventListener('click', function(e) {
     const link = e.target.closest('a[href]');
     if (!link) return;
+    // Only handle links that live inside document content. Links in the
+    // sidebars (TOC "on this page", document list) have their own handlers;
+    // letting this run for them would resolve duplicate heading ids against
+    // the wrong panel (every same-template doc shares the same ids).
+    const ownerPanel = link.closest('.tab-content');
+    if (!ownerPanel) return;
     const href = link.getAttribute('href');
     if (!href) return;
 
@@ -26785,10 +27787,10 @@ document.addEventListener('click', function(e) {
     if (href.charAt(0) === '#') {
         const id = href.substring(1);
         if (!id) return;
-        const ownerPanel = link.closest('.tab-content');
         const target = findById(id, ownerPanel);
         if (target) {
             e.preventDefault();
+            pushHistory();
             const dest = target.closest('.tab-content');
             if (dest) {
                 const m = dest.id.match(/^panel-(\d+)$/);
@@ -26803,12 +27805,26 @@ document.addEventListener('click', function(e) {
     const md = mdTarget(href, baseDirOf(link));
     if (md) {
         e.preventDefault();
+        pushHistory();
         gotoAnchor(md.idx, md.anchor);
     }
 });
 
 /* ───── Startup ───── */
 /* - Nagesh N Nazare - */
+
+// Restore persisted sidebar / TOC open state (only on desktop, where the
+// drawers don't overlay the content).
+if (window.innerWidth > 1024) {
+    if (LS.get('doc-sidebar') === 'open') {
+        sidebarNav.classList.remove('collapsed');
+        document.body.classList.remove('sidebar-collapsed');
+    }
+    if (LS.get('doc-toc') === 'open') {
+        tocSidebar.classList.remove('collapsed');
+        document.body.classList.remove('toc-collapsed');
+    }
+}
 
 const hash = location.hash || '';
 const tabMatch = hash.match(/^#tab-(\d+)$/);
@@ -26832,7 +27848,17 @@ if (tabMatch) {
         activateTab(0);
     }
 } else {
-    activateTab(0);
+    // No explicit target: resume the last-read document + scroll position.
+    const lastIdx = parseInt(LS.get('doc-last-idx'), 10);
+    const lastY = parseInt(LS.get('doc-last-y'), 10);
+    if (!isNaN(lastIdx) && lastIdx >= 0 && lastIdx < TAB_DATA.length) {
+        activateTab(lastIdx, false);
+        if (!isNaN(lastY) && lastY > 0) {
+            requestAnimationFrame(() => window.scrollTo({ top: lastY, behavior: 'auto' }));
+        }
+    } else {
+        activateTab(0);
+    }
 }
 </script>
 

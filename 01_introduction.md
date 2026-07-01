@@ -292,7 +292,7 @@ high-performance code. Each generation introduces new capabilities.
 │ Hopper     │ sm_90  │ TMA, DPX, FP8, Thread Block Clusters, WGMMA           │
 │ Blackwell  │ sm_100 │ FP4/FP6, 5th-gen Tensor Cores, Tensor Memory (TMEM)   │
 │ Blackwell  │ sm_120 │ Consumer RTX 50-series, block-scaled MMA              │
-│   (consumer)│       │ (no tcgen05, uses HMMA/WGMMA paths)                   │
+│  (consumer)│        │ (no tcgen05, uses HMMA/WGMMA paths)                   │
 └────────────┴────────┴───────────────────────────────────────────────────────┘
 
 Feature-Complete (no new features in future CUDA):
@@ -381,11 +381,11 @@ nvidia-smi
 
 ### CUDA Function Qualifiers:
 
-| Qualifier | Executed on | Callable from |
-|-----------|-------------|---------------|
-| `__global__` | Device (GPU) | Host (CPU) |
-| `__device__` | Device (GPU) | Device (GPU) |
-| `__host__` | Host (CPU) | Host (CPU) |
+| Qualifier    | Executed on  | Callable from |
+|--------------|--------------|---------------|
+| `__global__` | Device (GPU) | Host (CPU)    |
+| `__device__` | Device (GPU) | Device (GPU)  |
+| `__host__`   | Host (CPU)   | Host (CPU)    |
 
 ### Key CUDA API Functions:
 

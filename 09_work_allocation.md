@@ -1,4 +1,9 @@
-# CUDA Work Allocation Guide
+# 09 — Work Allocation
+
+> Part of **[CUDA Know-Hows](README.md)**. Prev: [08 — Execution model & occupancy](08_execution_model_and_occupancy.md).
+> Next: [10 — GPU architecture](10_gpu_architecture.md). The practical decision
+> guide for choosing block and grid sizes and mapping work onto SMs.
+
 ## When and Where to Use Blocks, Grids, and Threads
 
 ### The Complete Guide to Efficient Work Distribution
@@ -1121,10 +1126,13 @@ Minimum: numSMs × (warps per SM / warps per block)
 
 ---
 
-**For detailed code examples, see existing tutorial files:**
-- `04_thread_organization.cu` - Basic thread indexing
-- `11_thread_indexing_patterns.md` - 1D/2D/3D patterns
-- `15_optimization_case_studies.md` - Performance impact
+**For detailed code and related chapters, see:**
+- [`examples/04_thread_organization.cu`](examples/04_thread_organization.cu) - Basic thread indexing
+- [`04_thread_indexing_patterns.md`](04_thread_indexing_patterns.md) - 1D/2D/3D patterns
+- [`08_execution_model_and_occupancy.md`](08_execution_model_and_occupancy.md) - Occupancy & scheduling
+- [`19_optimization_case_studies.md`](19_optimization_case_studies.md) - Performance impact
 
 **Key insight**: Start with defaults (256 threads, numSMs × 8 blocks), then profile and adjust!
+
+← Back to [README](README.md)
 

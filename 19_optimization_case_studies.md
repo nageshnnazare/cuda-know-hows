@@ -1,4 +1,8 @@
-# CUDA Optimization Case Studies
+# 19 — Optimization Case Studies
+
+> Part of **[CUDA Know-Hows](README.md)**. Prev: [18 — Profiling & debugging](18_profiling_and_debugging.md).
+> Next: [20 — Libraries & ecosystem](20_libraries_and_ecosystem.md). Worked
+> before/after optimizations that apply the whole guide end-to-end.
 
 ## Step-by-Step Performance Improvements
 

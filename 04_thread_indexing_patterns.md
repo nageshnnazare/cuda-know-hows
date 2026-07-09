@@ -1,4 +1,10 @@
-# CUDA Thread Indexing Patterns: Complete Guide
+# 04 — Thread Indexing Patterns (1D / 2D / 3D)
+
+> Part of **[CUDA Know-Hows](README.md)**. Prev: [03 — Thread hierarchy](03_thread_hierarchy.md).
+> Next: [05 — Memory model](05_memory_model.md). Deep, illustrated reference for
+> mapping threads to arrays, images, and volumes — and the coalescing that
+> follows from your indexing choice.
+
 ## 1D, 2D, and 3D Thread Access with Detailed Illustrations
 
 This tutorial provides an in-depth exploration of thread indexing patterns in CUDA, from basic 1D arrays to complex 3D volumes, with visual illustrations and practical examples.
@@ -76,38 +82,38 @@ This tutorial provides an in-depth exploration of thread indexing patterns in CU
 ### Basic 1D Configuration
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                  1D THREAD ORGANIZATION                          │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  Grid: 4 blocks (gridDim.x = 4)                                  │
-│  Block: 8 threads (blockDim.x = 8)                               │
-│  Total: 32 threads                                               │
-│                                                                  │
-│  ┌──────────┬──────────┬──────────┬──────────┐                   │
-│  │ Block 0  │ Block 1  │ Block 2  │ Block 3  │                   │
-│  │ (bIdx=0) │ (bIdx=1) │ (bIdx=2) │ (bIdx=3) │                   │
-│  ├──────────┼──────────┼──────────┼──────────┤                   │
-│  │┌─┬─┬─┬─┐ │┌─┬─┬─┬─┐ │┌─┬─┬─┬─┐ │┌─┬─┬─┬─┐ │                   │
-│  ││0│1│2│3│ ││0│1│2│3│ ││0│1│2│3│ ││0│1│2│3│ │                   │
-│  │├─┼─┼─┼─┤ │├─┼─┼─┼─┤ │├─┼─┼─┼─┤ │├─┼─┼─┼─┤ │                   │
-│  ││4│5│6│7│ ││4│5│6│7│ ││4│5│6│7│ ││4│5│6│7│ │                   │
-│  │└─┴─┴─┴─┘ │└─┴─┴─┴─┘ │└─┴─┴─┴─┘ │└─┴─┴─┴─┘ │                   │
-│  │  tIdx    │  tIdx    │  tIdx    │  tIdx    │                   │
-│  └──────────┴──────────┴──────────┴──────────┘                   │
-│                                                                  │
-│  Global Thread ID Calculation:                                   │
-│  ────────────────────────────────                                │
-│  globalID = blockIdx.x * blockDim.x + threadIdx.x                │
-│                                                                  │
-│  Examples:                                                       │
-│  • Block 0, Thread 0: 0 * 8 + 0 = 0                              │
-│  • Block 0, Thread 7: 0 * 8 + 7 = 7                              │
-│  • Block 1, Thread 0: 1 * 8 + 0 = 8                              │
-│  • Block 1, Thread 5: 1 * 8 + 5 = 13                             │
-│  • Block 3, Thread 7: 3 * 8 + 7 = 31                             │
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                  1D THREAD ORGANIZATION             │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  Grid: 4 blocks (gridDim.x = 4)                     │
+│  Block: 8 threads (blockDim.x = 8)                  │
+│  Total: 32 threads                                  │
+│                                                     │
+│  ┌──────────┬──────────┬──────────┬──────────┐      │
+│  │ Block 0  │ Block 1  │ Block 2  │ Block 3  │      │
+│  │ (bIdx=0) │ (bIdx=1) │ (bIdx=2) │ (bIdx=3) │      │
+│  ├──────────┼──────────┼──────────┼──────────┤      │
+│  │┌─┬─┬─┬─┐ │┌─┬─┬─┬─┐ │┌─┬─┬─┬─┐ │┌─┬─┬─┬─┐ │      │
+│  ││0│1│2│3│ ││0│1│2│3│ ││0│1│2│3│ ││0│1│2│3│ │      │
+│  │├─┼─┼─┼─┤ │├─┼─┼─┼─┤ │├─┼─┼─┼─┤ │├─┼─┼─┼─┤ │      │
+│  ││4│5│6│7│ ││4│5│6│7│ ││4│5│6│7│ ││4│5│6│7│ │      │
+│  │└─┴─┴─┴─┘ │└─┴─┴─┴─┘ │└─┴─┴─┴─┘ │└─┴─┴─┴─┘ │      │
+│  │  tIdx    │  tIdx    │  tIdx    │  tIdx    │      │
+│  └──────────┴──────────┴──────────┴──────────┘      │
+│                                                     │
+│  Global Thread ID Calculation:                      │
+│  ────────────────────────────────                   │
+│  globalID = blockIdx.x * blockDim.x + threadIdx.x   │
+│                                                     │
+│  Examples:                                          │
+│  • Block 0, Thread 0: 0 * 8 + 0 = 0                 │
+│  • Block 0, Thread 7: 0 * 8 + 7 = 7                 │
+│  • Block 1, Thread 0: 1 * 8 + 0 = 8                 │
+│  • Block 1, Thread 5: 1 * 8 + 5 = 13                │
+│  • Block 3, Thread 7: 3 * 8 + 7 = 31                │
+│                                                     │
+└─────────────────────────────────────────────────────┘
 ```
 
 ### 1D Example: Vector Addition
@@ -562,14 +568,14 @@ transposeNaive<<<gridSize, blockSize>>>(d_in, d_out, width, height);
 │  │    ↗                                               │                  │
 │  │   /                                                │                  │
 │  │  /    Slice 127 (top)                              │                  │
-│  │ /     ┌──────────────┐                             │                  │
+│  │ /    ┌──────────────┐                              │                  │
 │  │      │              │                              │                  │
 │  │      │   Slice 64   │                              │                  │
 │  │      │  ┌──────────┐│                              │                  │
 │  │      │  │          ││                              │                  │
 │  │      │  │ Slice 32 ││                              │                  │
 │  │      │  │ ┌────────┤│                              │                  │
-│  │      │  │ │  Slice││                               │                  │
+│  │      │  │ │  Slice ││                              │                  │
 │  │      │  │ │  0     ││ (bottom)                     │                  │
 │  │      │  │ └────────┤│                              │                  │
 │  │      │  └──────────┘│                              │                  │
@@ -1117,10 +1123,10 @@ convolve2DHalo<<<gridSize, blockSize>>>(d_input, d_output, width, height);
 │  BAD: Strided or column-wise access                                      │
 │  ───────────────────────────────────                                     │
 │  Column-wise access (Y-direction):                                       │
-│  ┌──┬──┬──┬──┬──┬──┬──┬──┐                                               │
-│  │T0│T1│T2│T3│T4│T5│T6│T7│  ← Warp of threads                            │
-│  └┬─┴┬─┴┬─┴┬─┴┬─┴┬─┴┬─┴┬─┘                                               │
-│   ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓                                                 │
+│   ┌──┬──┬──┬──┬──┬──┬──┬──┐                                              │
+│   │T0│T1│T2│T3│T4│T5│T6│T7│  ← Warp of threads                           │
+│   └┬─┴┬─┴┬─┴┬─┴┬─┴┬─┴┬─┴┬─┘                                              │
+│    ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓                                                │
 │  [0]-│--│--│--│--│--│--│--│                                              │
 │  [W]-┘--│--│--│--│--│--│--│                                              │
 │  [2W]---┘--│--│--│--│--│--│  (W = width, large stride)                   │
@@ -1207,14 +1213,14 @@ This guide covered:
 
 ### Next Steps
 
-- Practice with the code examples in [04_thread_organization.cu](04_thread_organization.cu)
+- Practice with the code examples in [`examples/04_thread_organization.cu`](examples/04_thread_organization.cu)
 - Implement custom kernels for your specific data layout
 - Profile memory access patterns with Nsight Compute
-- Study shared memory patterns in [06_shared_memory.cu](06_shared_memory.cu)
+- Study shared memory patterns in [07 — Shared memory](07_shared_memory.md) and [`examples/06_shared_memory.cu`](examples/06_shared_memory.cu)
 
 ---
 
-*For executable code examples, see [04_thread_organization.cu](04_thread_organization.cu)*
+*For executable code examples, see [`examples/04_thread_organization.cu`](examples/04_thread_organization.cu)*
 
-*For performance profiling, see [09_profiling_debugging.md](09_profiling_debugging.md)*
+*For performance profiling, see [18_profiling_and_debugging.md](18_profiling_and_debugging.md)*
 

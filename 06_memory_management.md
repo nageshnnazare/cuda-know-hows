@@ -1,4 +1,10 @@
-# CUDA Memory Allocation: The Complete Guide
+# 06 — Memory Management
+
+> Part of **[CUDA Know-Hows](README.md)**. Prev: [05 — Memory model](05_memory_model.md).
+> Next: [07 — Shared memory](07_shared_memory.md). The complete reference to
+> allocating and moving memory: `cudaMalloc`, unified, pinned, pooled/stream-
+> ordered allocation, and choosing the right strategy.
+
 ## Host Memory, Device Memory, and Everything In Between
 
 This guide is a deep-dive reference for every memory allocation strategy in CUDA.
@@ -657,11 +663,11 @@ cudaFree(data);  // Single free
                  │    │  ├─ Migrate page from GPU → CPU
                  │    │  └─ Resume access
                  ▼    │
-              [Access] │
-                       │
+             [Access] │
+                      │
                 GPU accesses 'data'
-                       │
-                       ▼
+                      │
+                      ▼
               ┌────────────────┐
               │ Is page on GPU?│
               └───────┬────────┘
@@ -672,7 +678,7 @@ cudaFree(data);  // Single free
                  │    │  ├─ Migrate page from CPU → GPU
                  │    │  └─ Resume access
                  ▼    │
-              [Access] │
+              [Access]│
 ```
 
 **Performance optimization with hints:**
@@ -749,7 +755,7 @@ Traditional cudaMalloc/cudaFree:
   All streams: ═══╗ cudaMalloc (global sync) ╠══════════════════════
                   ║                          ║
   Stream 0:  ─────╨──────────────────────────╨──────────────────────
-  Stream 1:  ─────╨── blocked ──────────────╨── can resume ────────
+  Stream 1:  ─────╨── blocked  ──────────────╨── can resume ────────
 
 cudaMallocAsync/cudaFreeAsync:
   Stream 0:  ─── cudaMallocAsync ─── kernel ─── cudaFreeAsync ────
@@ -1186,7 +1192,7 @@ cudaGetDeviceProperties(&prop, device);
 - [CUDA C++ Programming Guide: Memory Management](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#memory-management)
 - [CUDA C++ Best Practices Guide: Memory Optimizations](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#memory-optimizations)
 - [Nsight Compute: Memory Workload Analysis](https://docs.nvidia.com/nsight-compute/)
-- Tutorial files: `03_memory_model.cu`, `06_shared_memory.cu`, `17_advanced_memory.cu`
+- Example files: [`examples/03_memory_model.cu`](examples/03_memory_model.cu), [`examples/06_shared_memory.cu`](examples/06_shared_memory.cu), [`examples/17_advanced_memory.cu`](examples/17_advanced_memory.cu)
 
 ---
 

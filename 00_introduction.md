@@ -1,4 +1,9 @@
-# CUDA Tutorial - Part 1: Introduction to CUDA Programming
+# 00 — Introduction to CUDA Programming
+
+> Part of **[CUDA Know-Hows](README.md)**. This chapter builds the mental model:
+> what CUDA is, how a GPU differs from a CPU, the thread and memory hierarchies,
+> the architecture generations, and the performance models (Amdahl, roofline)
+> you'll use throughout. Next: [01 — Setup & compilation](01_setup_and_compilation.md).
 
 ## Table of Contents
 1. [What is CUDA?](#what-is-cuda)
@@ -566,5 +571,6 @@ In the next tutorial, we'll write our first CUDA kernel and understand:
 - [CUDA Tile C++ API Reference](https://docs.nvidia.com/cuda/cuda-tile-cpp-api-reference/)
 - [Blackwell Architecture Whitepaper](https://resources.nvidia.com/en-us-blackwell-architecture)
 
-Ready to write your first CUDA kernel? Continue to [**02_first_kernel.cu**](./02_first_kernel.cu)!
+**Next:** [01 — Setup & compilation →](01_setup_and_compilation.md), then
+[02 — Your first kernel →](02_first_kernel.md).
 

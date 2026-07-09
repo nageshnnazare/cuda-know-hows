@@ -1,4 +1,11 @@
-# GPU Locks and Critical Sections - Complete Guide
+# 12 — Atomics & Synchronization
+
+> Part of **[CUDA Know-Hows](README.md)**. Prev: [11 — Matrix multiplication](11_matrix_multiplication.md).
+> Next: [13 — Streams & concurrency](13_streams_and_concurrency.md).
+> Runnable code: [`examples/gpu_locks_and_synchronization.cu`](examples/gpu_locks_and_synchronization.cu),
+> [`examples/08_advanced_topics.cu`](examples/08_advanced_topics.cu). The complete
+> guide to atomics, locks/critical sections, barriers, and lock-free patterns on
+> the GPU.
 
 ## Understanding Synchronization in CUDA Programming
 
@@ -1310,7 +1317,7 @@ __global__ void blockSemaphore(int *data) {
 ║               ▼             ▼             ▼             ▼      ║
 ║          __syncthreads() works within each block               ║
 ║                                                                ║
-║          ❌ NO way to sync across blocks! ❌                    ║
+║          ❌ NO way to sync across blocks! ❌                   ║
 ║                                                                ║
 ╚════════════════════════════════════════════════════════════════╝
 ```
@@ -2267,8 +2274,9 @@ kernel2<<<...>>>(data);
 
 ---
 
-**File**: `gpu_locks_and_synchronization.cu` contains runnable examples of all concepts!
+**File**: [`examples/gpu_locks_and_synchronization.cu`](examples/gpu_locks_and_synchronization.cu) contains runnable examples of all concepts!
 
-**Compile**: `nvcc -o gpu_locks gpu_locks_and_synchronization.cu -O3`  
-**Run**: `./gpu_locks`
+**Build & run**: `cd examples && make gpu_locks_and_synchronization && ./gpu_locks_and_synchronization`
+
+← Back to [README](README.md) · Next: [13 — Streams & concurrency →](13_streams_and_concurrency.md)
 

@@ -52,19 +52,22 @@ for (int d = 0; d < n; ++d) {
 
 Where GPUs sit relative to each other decides how fast they can talk.
 
-```
-   ┌────────────────────────────────────────────────────────────────────────────┐
+![Interconnect bandwidth hierarchy from on-GPU HBM down to the network](figures/interconnect.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   ┌────────────────────────────────────────────────────────────────────────────┐
    │ path                     approx bandwidth   notes                          │
    ├────────────────────────────────────────────────────────────────────────────┤
    │ on-GPU global memory     TB/s (2-8+)        HBM3e — the baseline           │
-   │ NVLink (GPU<->GPU)       100s GB/s - 1.8TB/s NVLink 5 (Blackwell)          │
+   │ NVLink (GPU&lt;-&gt;GPU)       100s GB/s - 1.8TB/s NVLink 5 (Blackwell)          │
    │ NVSwitch (all-to-all)    full NVLink BW      GB200 NVL72: 72 GPUs meshed   │
-   │ PCIe (GPU<->GPU/CPU)     ~32-64 GB/s (Gen5)  much slower than NVLink       │
-   │ network (node<->node)    InfiniBand 400Gb/s  multi-node; use GPUDirect RDMA│
+   │ PCIe (GPU&lt;-&gt;GPU/CPU)     ~32-64 GB/s (Gen5)  much slower than NVLink       │
+   │ network (node&lt;-&gt;node)    InfiniBand 400Gb/s  multi-node; use GPUDirect RDMA│
    └────────────────────────────────────────────────────────────────────────────┘
 
-   Query the topology:  nvidia-smi topo -m   (shows NVLink vs PCIe between GPUs)
-```
+   Query the topology:  nvidia-smi topo -m   (shows NVLink vs PCIe between GPUs)</code></pre>
+</details>
 
 ```
    Communication is ~10-100x slower than local memory. Every design decision is
@@ -139,25 +142,28 @@ ncclGroupEnd();
 
 ## 6. Parallelism strategies (especially for deep learning)
 
-```
-   DATA PARALLEL: replicate the model on each GPU, split the BATCH across GPUs,
+![Data, tensor and pipeline parallelism strategies for multi-GPU](figures/parallelism.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   DATA PARALLEL: replicate the model on each GPU, split the BATCH across GPUs,
      AllReduce gradients each step. Simplest; scales until comm dominates.
        GPU0: model | batch[0:N/4]  ┐
        GPU1: model | batch[N/4:N/2]├─ forward/backward independently
        GPU2: ...                   │  then ncclAllReduce(gradients)
        GPU3: ...                   ┘
 
-   MODEL / TENSOR PARALLEL: split the MODEL (each layer's weights/matmul) across
-     GPUs; needed when the model doesn't fit on one GPU. Heavy communication
-     (AllGather/ReduceScatter within each layer) -> keep GPUs NVLink-connected.
+   MODEL / TENSOR PARALLEL: split the MODEL (each layer&#x27;s weights/matmul) across
+     GPUs; needed when the model doesn&#x27;t fit on one GPU. Heavy communication
+     (AllGather/ReduceScatter within each layer) -&gt; keep GPUs NVLink-connected.
 
    PIPELINE PARALLEL: put different LAYERS on different GPUs; micro-batches flow
      through the pipeline. Reduces per-GPU memory; needs careful scheduling to
-     avoid "bubbles" (idle GPUs while the pipeline fills/drains).
+     avoid &quot;bubbles&quot; (idle GPUs while the pipeline fills/drains).
 
-   In practice large models combine all three ("3D parallelism"), with NCCL doing
-   the communication. Frameworks (Megatron, DeepSpeed, FSDP) implement these.
-```
+   In practice large models combine all three (&quot;3D parallelism&quot;), with NCCL doing
+   the communication. Frameworks (Megatron, DeepSpeed, FSDP) implement these.</code></pre>
+</details>
 
 ---
 

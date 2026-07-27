@@ -16,8 +16,11 @@
 `C = A · B` for N×N matrices: `C[i][j] = Σ_k A[i][k]·B[k][j]`. Each output
 element is a dot product of a row of A and a column of B.
 
-```
-        A (N x N)         B (N x N)          C (N x N)
+![Matrix multiply: C[i,j] = row i of A dot col j of B](figures/matmul-problem.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>        A (N x N)         B (N x N)          C (N x N)
       ┌───────────┐     ┌───────────┐     ┌───────────┐
    i  │ ─────────▶│     │  │        │     │     Cij   │
       │  row i    │  ×  │  │col j   │  =  │      ●    │   Cij = row_i(A) · col_j(B)
@@ -25,10 +28,11 @@ element is a dot product of a row of A and a column of B.
       └───────────┘     └───────────┘     └───────────┘
 
    FLOPs = 2*N^3 (a multiply + add per k, N^3 times).
-   Naive data movement = O(N^3) too -> arithmetic intensity ~O(1) -> memory-bound.
-   The whole game: REUSE each loaded element O(N) times -> raise intensity ->
+   Naive data movement = O(N^3) too -&gt; arithmetic intensity ~O(1) -&gt; memory-bound.
+   The whole game: REUSE each loaded element O(N) times -&gt; raise intensity -&gt;
    compute-bound (roofline, Ch. 00).
-```
+</code></pre>
+</details>
 
 ---
 
@@ -87,21 +91,24 @@ __global__ void matmulTiled(const float* A, const float* B, float* C, int N) {
 }
 ```
 
-```
-   TILING: each block loads TILE x TILE sub-blocks of A and B ONCE, reuses TILE times.
+![Shared-memory tiling: each block loads TILE by TILE sub-blocks of A and B once and reuses them, cutting global memory traffic](figures/tiling.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   TILING: each block loads TILE x TILE sub-blocks of A and B ONCE, reuses TILE times.
 
      A tiles ─┐                     C tile computed by this block:
      ┌──┬──┬──┐   B tiles           ┌──┬──┬──┐
      │▓▓│  │  │   ┌──┬──┬──┐        │▒▒│  │  │  ▒ = this block's output tile
      ├──┼──┼──┤   │▓▓│  │  │   =    ├──┼──┼──┤
-     │  │  │  │   ├──┼──┼──┤        │  │  │  │  For each k-tile ▓: load A-tile & B-tile
+     │  │  │  │   ├──┼──┼──┤        │  │  │  │  For each k-tile ▓: load A-tile &amp; B-tile
      └──┴──┴──┘   │  │  │  │        └──┴──┴──┘  to shared, accumulate. Global reads
                   └──┴──┴──┘                    drop from O(N^3) to O(N^3/TILE).
 
-   Global memory traffic shrinks by ~TILE x -> arithmetic intensity rises ->
+   Global memory traffic shrinks by ~TILE x -&gt; arithmetic intensity rises -&gt;
    compute-bound. Typically 3-10x faster than naive. Remember bank-conflict
-   padding ([TILE][TILE+1]) for some access patterns (Ch. 07).
-```
+   padding ([TILE][TILE+1]) for some access patterns (Ch. 07).</code></pre>
+</details>
 
 ---
 

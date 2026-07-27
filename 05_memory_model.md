@@ -29,11 +29,14 @@
    *constant is fast ONLY when all threads in a warp read the SAME address (broadcast).
 ```
 
-```
-   PHYSICAL PICTURE (per SM view):
+![CUDA memory scopes: registers and local memory are per-thread, shared memory is per-block, and global and constant memory span the whole grid](figures/memory-spaces.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   PHYSICAL PICTURE (per SM view):
 
               ┌──────────────── one SM ─────────────────┐
-   threads -> │  Registers (per-thread, fastest)        │
+   threads -&gt; │  Registers (per-thread, fastest)        │
               │  Shared memory / L1  (per-block, fast)  │
               └───────────────────┬─────────────────────┘
                                   │
@@ -44,8 +47,8 @@
                       ┌───────────▼────────────┐
                       │  Global memory (DRAM,  │   GBs, HBM/GDDR
                       │  HBM3e / GDDR6X)       │   high bandwidth, high latency
-                      └────────────────────────┘
-```
+                      └────────────────────────┘</code></pre>
+</details>
 
 The performance game is **moving work up this pyramid**: turn global-memory
 traffic into shared-memory reuse (Chapter 07) and register reuse, and make the

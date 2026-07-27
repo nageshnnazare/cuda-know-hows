@@ -91,15 +91,18 @@ Clusters add a **new level to the hierarchy** (Ch. 03): a group of blocks
 guaranteed to be co-resident on neighboring SMs, able to access each other's
 shared memory (**distributed shared memory, DSMEM**) and synchronize.
 
-```
-   grid ─▶ CLUSTER ─▶ block ─▶ warp ─▶ thread     (cluster = new, optional level)
+![Thread-block clusters add a level between grid and block, sharing DSMEM](figures/clusters.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   grid ─▶ CLUSTER ─▶ block ─▶ warp ─▶ thread     (cluster = new, optional level)
 
    ┌──────────── cluster ─────────────┐
    │  ┌ block 0 ┐   ┌ block 1 ┐       │  blocks in a cluster can:
-   │  │ smem ◀──┼───┼──▶ smem │       │   - read each other's shared memory (DSMEM)
+   │  │ smem ◀──┼───┼──▶ smem │       │   - read each other&#x27;s shared memory (DSMEM)
    │  └─────────┘   └─────────┘       │   - cluster.sync() across blocks
-   └──────────────────────────────────┘   - share a larger effective on-chip tile
-```
+   └──────────────────────────────────┘   - share a larger effective on-chip tile</code></pre>
+</details>
 
 ```cpp
 // Launch with a cluster dimension (via __cluster_dims__ or cudaLaunchKernelEx):
@@ -140,8 +143,11 @@ terms of **tiles of data** and tile operations; the compiler maps them to
 threads, shared memory, TMA, and Tensor Cores automatically — across
 architectures.
 
-```
-   THREAD-CENTRIC (Ch. 02-17): you manage every thread, index, __shared__ tile,
+![Thread-centric vs tile-centric programming](figures/tile-programming.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   THREAD-CENTRIC (Ch. 02-17): you manage every thread, index, __shared__ tile,
      __syncthreads, and (for MMA) fragments. Maximum control, maximum complexity.
 
    TILE-CENTRIC (CUDA Tile): you declare tiles and express tile-level math;
@@ -149,7 +155,8 @@ architectures.
 
      load tile A, tile B  ─▶  tile C = matmul(A, B)  ─▶  store tile C
      (the compiler emits the coalesced loads, TMA, shared staging, MMA, epilogue)
-```
+</code></pre>
+</details>
 
 ```
    WHY IT MATTERS:

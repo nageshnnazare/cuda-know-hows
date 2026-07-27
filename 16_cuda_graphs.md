@@ -93,13 +93,16 @@ cudaGraphAddKernelNode(&b, graph, &a, 1, &pb);           // b depends on a
 cudaGraphInstantiate(&exec, graph, nullptr, nullptr, 0);
 ```
 
-```
-   EXPLICIT GRAPH (a DAG):
+![A CUDA graph is a DAG: B and C run concurrently after A, D after both](figures/cuda-graph.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   EXPLICIT GRAPH (a DAG):
         ┌──▶ [kernel B] ──┐
    [A] ─┤                 ├─▶ [D]     A runs; B and C run concurrently after A;
         └──▶ [kernel C] ──┘           D runs after both B and C.
-   The graph EXPRESSES the parallelism; the runtime schedules B and C together.
-```
+   The graph EXPRESSES the parallelism; the runtime schedules B and C together.</code></pre>
+</details>
 
 ---
 

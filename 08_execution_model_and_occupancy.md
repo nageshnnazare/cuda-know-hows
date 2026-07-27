@@ -17,8 +17,11 @@ When you launch a kernel, the GPU's scheduler distributes **blocks** onto
 executing their **warps** (32 threads). A block stays on one SM for its entire
 life and never migrates.
 
-```
-   kernel<<<12 blocks, 256 threads>>>   on a GPU with 4 SMs:
+![Twelve thread blocks distributed across four SMs in waves as resources free up](figures/blocks-to-sm.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   kernel&lt;&lt;&lt;12 blocks, 256 threads&gt;&gt;&gt;   on a GPU with 4 SMs:
 
    ┌── SM0 ──┐ ┌── SM1 ──┐ ┌── SM2 ──┐ ┌── SM3 ──┐
    │ B0  B4  │ │ B1  B5  │ │ B2  B6  │ │ B3  B7  │   first wave (2 blocks/SM if
@@ -27,8 +30,8 @@ life and never migrates.
 
    Each block (256 threads) = 8 warps. The SM's warp schedulers pick READY warps
    to issue each cycle. Blocks are assigned as resources (regs/smem/warp slots)
-   allow; leftover blocks wait for a slot ("waves").
-```
+   allow; leftover blocks wait for a slot ("waves").</code></pre>
+</details>
 
 ```
    RESOURCES THAT LIMIT HOW MANY BLOCKS FIT ON AN SM (all must be satisfied):
@@ -49,8 +52,11 @@ warp stalls (e.g. waiting ~400 cycles for a global-memory load), the scheduler
 simply issues a *different* ready warp. **This is how the GPU hides latency: not
 by making one warp fast, but by always having another warp to run.**
 
-```
-   ONE warp (no latency hiding): mostly stalled waiting on memory
+![Latency hiding: while one warp stalls on memory, the scheduler issues other ready warps so the SM stays busy](figures/latency-hiding.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   ONE warp (no latency hiding): mostly stalled waiting on memory
      warp A:  compute ──[■■■■■ 400-cycle memory stall ■■■■■]── compute      IDLE SM
 
    MANY warps (latency hidden): scheduler switches to ready warps
@@ -58,8 +64,8 @@ by making one warp fast, but by always having another warp to run.**
      warp B:          compute ──[■■ stalled ■■]── compute
      warp C:                  compute ──[■ stall ■]── compute
      warp D:                          compute ...
-     SM:      A→B→C→D→A... always issuing SOMETHING -> SM stays BUSY
-```
+     SM:      A→B→C→D→A... always issuing SOMETHING -&gt; SM stays BUSY</code></pre>
+</details>
 
 ```
    KEY CONSEQUENCE: you need ENOUGH resident warps to cover memory latency.

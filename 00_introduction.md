@@ -35,8 +35,11 @@ As of 2026, CUDA has matured through major toolkit releases up to **CUDA Toolkit
 
 ### CPU vs GPU Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
+![CPU vs GPU: a few large CPU cores with deep caches versus many small GPU cores grouped into streaming multiprocessors](figures/cpu-vs-gpu.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
 │                         CPU ARCHITECTURE                            │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
@@ -88,8 +91,8 @@ As of 2026, CUDA has matured through major toolkit releases up to **CUDA Toolkit
 │  SM = Streaming Multiprocessor,  C = CUDA Core                      │
 │  Features: Thousands of simple cores, Massive parallelism           │
 │  Best for: Data-parallel operations, Simple computations            │
-└─────────────────────────────────────────────────────────────────────┘
-```
+└─────────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### GPU Components Explained:
 
@@ -166,8 +169,11 @@ CUDA uses **SIMT** (Single Instruction, Multiple Threads):
 - Since Volta (2017), threads within a warp have independent program counters,
   enabling fine-grained divergence and reconvergence
 
-```
-┌──────────────────────────────────────────────────────────────────┐
+![CUDA thread hierarchy: a grid contains blocks, and each block contains threads](figures/thread-hierarchy.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────┐
 │                    CUDA THREAD HIERARCHY                         │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                  │
@@ -193,8 +199,8 @@ CUDA uses **SIMT** (Single Instruction, Multiple Threads):
 │  T = Thread    Each thread has unique ID                         │
 │  Threads grouped into Blocks                                     │
 │  Blocks grouped into Grid                                        │
-└──────────────────────────────────────────────────────────────────┘
-```
+└──────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### Key Hierarchy Concepts:
 
@@ -215,8 +221,11 @@ CUDA uses **SIMT** (Single Instruction, Multiple Threads):
 
 ### Memory Model
 
-```
-┌──────────────────────────────────────────────────────────────┐
+![GPU memory hierarchy from fast, small registers down to large, slow host memory across PCIe](figures/memory-hierarchy.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
 │                      CUDA MEMORY HIERARCHY                   │
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
@@ -256,10 +265,10 @@ CUDA uses **SIMT** (Single Instruction, Multiple Threads):
 │  │                                            │              │
 │  └────────────────────────────────────────────┘              │
 │                                                              │
-│  Speed:  Registers > Shared > L2 > Global > Host             │
-│  Size:   Registers < Shared < L2 < Global < Host             │
-└──────────────────────────────────────────────────────────────┘
-```
+│  Speed:  Registers &gt; Shared &gt; L2 &gt; Global &gt; Host             │
+│  Size:   Registers &lt; Shared &lt; L2 &lt; Global &lt; Host             │
+└──────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### Memory Type Characteristics:
 
@@ -362,8 +371,11 @@ nvidia-smi
 
 ### First CUDA Program Structure:
 
-```
-┌──────────────────────────────────────────────────────────┐
+![Typical CUDA program flow: host init, allocate, copy, launch, copy back, free](figures/prog-structure.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────┐
 │              TYPICAL CUDA PROGRAM FLOW                   │
 ├──────────────────────────────────────────────────────────┤
 │                                                          │
@@ -381,8 +393,8 @@ nvidia-smi
 │     ↓                                                    │
 │  7. Process results on HOST                              │
 │                                                          │
-└──────────────────────────────────────────────────────────┘
-```
+└──────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### CUDA Function Qualifiers:
 
@@ -451,8 +463,11 @@ Speedup = 1 / (0.1 + 0.9/100) = 1 / 0.109 = 9.17x overall
 The roofline model helps determine whether your kernel is compute-bound
 or memory-bound:
 
-```
-Arithmetic Intensity = FLOPs / Bytes Transferred
+![Roofline model: a memory-bound sloped region rising to a compute-bound ceiling at the ridge point](figures/roofline.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>Arithmetic Intensity = FLOPs / Bytes Transferred
 
   Performance │
   (GFLOPS)    │          ╱─────────── Peak Compute (ceiling)
@@ -466,8 +481,8 @@ Arithmetic Intensity = FLOPs / Bytes Transferred
 
 If your kernel is below the roofline:
   - Left of the ridge: memory-bound → optimize data access
-  - Right of the ridge: compute-bound → optimize arithmetic
-```
+  - Right of the ridge: compute-bound → optimize arithmetic</code></pre>
+</details>
 
 ### Optimization Goals:
 

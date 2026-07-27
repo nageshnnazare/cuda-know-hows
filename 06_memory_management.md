@@ -47,8 +47,11 @@ Last Updated: May 2026 | CUDA Toolkit 13.3
 Every CUDA program deals with two physical memory systems connected by
 an interconnect (PCIe or NVLink):
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
+![The CUDA memory landscape: host memory types, the bus, and device memory spaces](figures/mem-landscape.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌─────────────────────────────────────────────────────────────────────────────┐
 │                        CUDA MEMORY LANDSCAPE                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
@@ -112,8 +115,8 @@ an interconnect (PCIe or NVLink):
 │  │                                                                    │     │
 │  └────────────────────────────────────────────────────────────────────┘     │
 │                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+└─────────────────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### At-a-Glance Comparison
 
@@ -197,8 +200,11 @@ Total: 1 copy (direct DMA)
 
 **Transfer speed comparison:**
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
+![Pinned host memory transfers several times faster than pageable](figures/pinned.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────────┐
 │                  HOST → DEVICE TRANSFER BANDWIDTH                    │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                      │
@@ -211,8 +217,8 @@ Total: 1 copy (direct DMA)
 │  NVLink (Grace-Blackwell):                                           │
 │  Pinned:    ████████████████████████████████   ~450 GB/s  (NVLink)   │
 │                                                                      │
-└──────────────────────────────────────────────────────────────────────┘
-```
+└──────────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 **Flags for cudaHostAlloc:**
 
@@ -649,8 +655,11 @@ cudaFree(data);  // Single free
 
 **How it works under the hood:**
 
-```
-                CPU accesses 'data'
+![Unified memory migrates pages on demand between CPU and GPU on a page fault](figures/unified-memory.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>                CPU accesses &#x27;data&#x27;
                        │
                        ▼
               ┌────────────────┐
@@ -665,7 +674,7 @@ cudaFree(data);  // Single free
                  ▼    │
              [Access] │
                       │
-                GPU accesses 'data'
+                GPU accesses &#x27;data&#x27;
                       │
                       ▼
               ┌────────────────┐
@@ -678,8 +687,8 @@ cudaFree(data);  // Single free
                  │    │  ├─ Migrate page from CPU → GPU
                  │    │  └─ Resume access
                  ▼    │
-              [Access]│
-```
+              [Access]│</code></pre>
+</details>
 
 **Performance optimization with hints:**
 
@@ -988,8 +997,11 @@ printf("%f\n", data[0]);
 
 ### "Which host memory should I use?"
 
-```
-                    ┌─────────────────────┐
+![Choosing host memory: a decision tree](figures/host-mem-decision.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>                    ┌─────────────────────┐
                     │ Do you need fast    │
                     │ GPU transfers?      │
                     └─────────┬───────────┘
@@ -1013,7 +1025,8 @@ printf("%f\n", data[0]);
                          │
                          ▼
                     cudaHostAlloc (Mapped) → zero-copy
-```
+</code></pre>
+</details>
 
 ### "Which device memory should I use?"
 

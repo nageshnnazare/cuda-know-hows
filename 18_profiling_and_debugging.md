@@ -25,8 +25,11 @@ Profiling and debugging are essential skills for CUDA development. This guide co
 
 ### The CUDA Debugging & Profiling Stack
 
-```
-┌─────────────────────────────────────────────────────────────┐
+![The debugging and profiling workflow, from error checks to Nsight profilers](figures/profiling-stack.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
 │                    DEVELOPMENT WORKFLOW                     │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
@@ -57,8 +60,8 @@ Profiling and debugging are essential skills for CUDA development. This guide co
 │     │ (Timeline view) │    │ (Kernel details) │             │
 │     └─────────────────┘    └──────────────────┘             │
 │                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+└─────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ---
 
@@ -919,8 +922,11 @@ float val = shared[threadIdx.x][0];  // Now conflict-free
 
 ### Performance Optimization Steps
 
-```
-┌─────────────────────────────────────────────────────────┐
+![Optimize in priority order: algorithm first, then memory, occupancy, instructions](figures/opt-workflow.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌─────────────────────────────────────────────────────────┐
 │           OPTIMIZATION PRIORITY ORDER                   │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
@@ -942,8 +948,8 @@ float val = shared[threadIdx.x][0];  // Now conflict-free
 │     • Unroll loops                                      │
 │     • Reduce divergence                                 │
 │                                                         │
-└─────────────────────────────────────────────────────────┘
-```
+└─────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### Profiling Tools Quick Reference
 
@@ -1093,8 +1099,11 @@ nvcc --compileiq my_kernel.cu -arch=sm_90
 
 ### The Testing Pyramid for CUDA
 
-```
-╔════════════════════════════════════════════════════════╗
+![The testing pyramid: many unit tests, some kernel tests, few integration tests](figures/test-pyramid.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>╔════════════════════════════════════════════════════════╗
 ║                                                        ║
 ║              ┌──────────────────┐                      ║
 ║              │  Integration     │  ← Few, slow         ║
@@ -1107,8 +1116,8 @@ nvcc --compileiq my_kernel.cu -arch=sm_90
 ║    │  (Host code, utilities)                │          ║
 ║    └────────────────────────────────────────┘          ║
 ║                                                        ║
-╚════════════════════════════════════════════════════════╝
-```
+╚════════════════════════════════════════════════════════╝</code></pre>
+</details>
 
 ### Types of Tests
 

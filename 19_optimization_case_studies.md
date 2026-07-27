@@ -352,8 +352,11 @@ Global Memory:                 Shared Memory (per block):
 
 ### Evolution of Reduction Kernels
 
-```
-┌──────────────┬────────────┬──────────┬────────────┐
+![Evolution of a reduction kernel across five versions to ~200x speedup](figures/reduction-evolution.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────┬────────────┬──────────┬────────────┐
 │ Version      │ Time (ms)  │ Speedup  │ Issue Fixed│
 ├──────────────┼────────────┼──────────┼────────────┤
 │ V1: Naive    │   12.5     │  1.0x    │ Baseline   │
@@ -361,8 +364,8 @@ Global Memory:                 Shared Memory (per block):
 │ V3: No Div   │    1.1     │ 11.4x    │ Divergence │
 │ V4: Unroll   │    0.45    │ 27.8x    │ Loop OH    │
 │ V5: Warp     │    0.06    │208.3x    │ Shuffle    │
-└──────────────┴────────────┴──────────┴────────────┘
-```
+└──────────────┴────────────┴──────────┴────────────┘</code></pre>
+</details>
 
 ### Version 1: Interleaved Addressing (Bad!) ⛔
 

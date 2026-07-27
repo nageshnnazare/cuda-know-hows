@@ -18,10 +18,13 @@ block**, that *you* explicitly manage. Its purpose: load data from slow global
 memory **once**, then let many threads reuse it many times from fast on-chip
 storage. This is the GPU version of cache blocking (see `cpp-hpc` Module 03).
 
-```
-   WITHOUT shared memory: every thread re-reads overlapping data from GLOBAL mem
+![Shared memory: load a tile once, reuse it on-chip](figures/smem-reuse.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   WITHOUT shared memory: every thread re-reads overlapping data from GLOBAL mem
       thread 0: reads in[0..2]   thread 1: reads in[1..3]   ... (in[1],in[2] read
-      multiple times from slow DRAM)  -> memory-bound, wasteful
+      multiple times from slow DRAM)  -&gt; memory-bound, wasteful
 
    WITH shared memory: load the tile ONCE to on-chip, reuse from there
       ┌──────────── block ─────────────┐
@@ -31,7 +34,8 @@ storage. This is the GPU version of cache blocking (see `cpp-hpc` Module 03).
       │  3. compute reusing smem       │   │ shared mem   │◀── reused by all threads
       │     (fast, no repeated DRAM)   │   │ (on-chip)    │    ~20x faster than DRAM
       └────────────────────────────────┘   └──────────────┘
-```
+</code></pre>
+</details>
 
 Declaration and the mandatory synchronization:
 
@@ -127,18 +131,21 @@ __global__ void reduceSum(const float* in, float* blockSums, int n) {
 }
 ```
 
-```
-   TREE REDUCTION (8 elements): log2(8)=3 steps instead of 7 serial adds
+![Parallel tree reduction: pairs are summed with a halving stride over log2 of n steps while active lanes stay packed](figures/reduction.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   TREE REDUCTION (8 elements): log2(8)=3 steps instead of 7 serial adds
 
    step0:  s: [3][1][7][0][4][1][6][3]
                 └─┬─┘ +  └─┬─┘  ...     stride=4: s[t]+=s[t+4]
    step1:  s: [7][2][13][3]  ...        stride=2
    step2:  s: [9][5] ...                stride=1
-   step3:  s: [14] ...                  done -> s[0] holds the block sum
+   step3:  s: [14] ...                  done -&gt; s[0] holds the block sum
 
-   WHY `if (t < stride)` (contiguous active threads) beats `if (t % (2*stride)==0)`:
-   it keeps ACTIVE lanes packed into whole warps -> avoids warp divergence (Ch. 08).
-```
+   WHY `if (t &lt; stride)` (contiguous active threads) beats `if (t % (2*stride)==0)`:
+   it keeps ACTIVE lanes packed into whole warps -&gt; avoids warp divergence (Ch. 08).</code></pre>
+</details>
 
 For the last warp (stride < 32), threads are implicitly synchronized within a
 warp; modern code uses **warp shuffle** (`__shfl_down_sync`, Chapter 14) to

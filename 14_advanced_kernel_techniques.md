@@ -131,13 +131,16 @@ __global__ void parent(int* data, int n) {
 nvcc -arch=sm_70 -rdc=true prog.cu -o prog -lcudadevrt
 ```
 
-```
-   DYNAMIC PARALLELISM:
+![Dynamic parallelism: a parent kernel launches child kernels on-device](figures/dynamic-parallelism.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   DYNAMIC PARALLELISM:
      parent kernel ──launches──▶ child kernel(s) ──▶ grandchildren ...
    + expresses recursion / data-dependent parallelism naturally on-device
    - launch overhead per child; can be slower than a flat kernel — measure!
-   Best when work is genuinely irregular/recursive and unknown ahead of time.
-```
+   Best when work is genuinely irregular/recursive and unknown ahead of time.</code></pre>
+</details>
 
 ---
 

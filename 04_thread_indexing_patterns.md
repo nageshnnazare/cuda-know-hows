@@ -81,8 +81,11 @@ This tutorial provides an in-depth exploration of thread indexing patterns in CU
 
 ### Basic 1D Configuration
 
-```
-┌─────────────────────────────────────────────────────┐
+![1D indexing: the global thread index is blockIdx.x times blockDim.x plus threadIdx.x across consecutive blocks](figures/index-1d.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌─────────────────────────────────────────────────────┐
 │                  1D THREAD ORGANIZATION             │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
@@ -113,8 +116,8 @@ This tutorial provides an in-depth exploration of thread indexing patterns in CU
 │  • Block 1, Thread 5: 1 * 8 + 5 = 13                │
 │  • Block 3, Thread 7: 3 * 8 + 7 = 31                │
 │                                                     │
-└─────────────────────────────────────────────────────┘
-```
+└─────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### 1D Example: Vector Addition
 
@@ -178,13 +181,16 @@ vectorAdd1D<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, N);
 
 ### 1D Strided Access Pattern
 
-```
-┌──────────────────────────────────────────────────────────────────┐
+![Grid-stride loop: a few threads stride across a larger array](figures/grid-stride.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────┐
 │              1D STRIDED ACCESS PATTERN                           │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  Use Case: Processing with grid-stride loop                      │
-│  (When N > total number of threads)                              │
+│  (When N &gt; total number of threads)                              │
 │                                                                  │
 │  Array (N = 20):                                                 │
 │  ┌──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┐   │
@@ -215,7 +221,7 @@ __global__ void vectorProcessStride(float *data, int N) {
     int stride = blockDim.x * gridDim.x;
     
     // Grid-stride loop
-    for (int i = idx; i < N; i += stride) {
+    for (int i = idx; i &lt; N; i += stride) {
         data[i] = data[i] * 2.0f;
     }
 }
@@ -224,8 +230,8 @@ __global__ void vectorProcessStride(float *data, int N) {
 int threadsPerBlock = 256;
 int blocksPerGrid = 4;  // Only 1024 threads total
 
-vectorProcessStride<<<blocksPerGrid, threadsPerBlock>>>(d_data, N);
-```
+vectorProcessStride&lt;&lt;&lt;blocksPerGrid, threadsPerBlock&gt;&gt;&gt;(d_data, N);</code></pre>
+</details>
 
 ---
 
@@ -233,8 +239,11 @@ vectorProcessStride<<<blocksPerGrid, threadsPerBlock>>>(d_data, N);
 
 ### Basic 2D Configuration
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
+![2D indexing: threads map to matrix elements by row and column derived from block and thread indices](figures/grid-2d.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────────────┐
 │                      2D THREAD ORGANIZATION                              │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
@@ -288,8 +297,8 @@ vectorProcessStride<<<blocksPerGrid, threadsPerBlock>>>(d_data, N);
 │  • row = 0 * 4 + 3 = 3                                                   │
 │  • Global position: (6, 3)                                               │
 │                                                                          │
-└──────────────────────────────────────────────────────────────────────────┘
-```
+└──────────────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### 2D Example: Image Processing
 
@@ -388,8 +397,11 @@ rgbToGrayscale2D<<<gridSize, blockSize>>>(d_rgb, d_gray, width, height);
 
 ### 2D Example: Matrix Transpose
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
+![Matrix transpose indexing: element (i,j) maps to (j,i)](figures/transpose.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────────────┐
 │                   2D INDEXING: MATRIX TRANSPOSE                          │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
@@ -454,7 +466,7 @@ __global__ void transposeNaive(float *input, float *output,
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     
-    if (col < width && row < height) {
+    if (col &lt; width &amp;&amp; row &lt; height) {
         // Read from input[row][col]
         int inputIdx = row * width + col;
         
@@ -469,8 +481,8 @@ __global__ void transposeNaive(float *input, float *output,
 dim3 blockSize(16, 16);
 dim3 gridSize((width + 15) / 16, (height + 15) / 16);
 
-transposeNaive<<<gridSize, blockSize>>>(d_in, d_out, width, height);
-```
+transposeNaive&lt;&lt;&lt;gridSize, blockSize&gt;&gt;&gt;(d_in, d_out, width, height);</code></pre>
+</details>
 
 ---
 
@@ -478,8 +490,11 @@ transposeNaive<<<gridSize, blockSize>>>(d_in, d_out, width, height);
 
 ### Basic 3D Configuration
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
+![3D thread indexing: a grid of blocks, a block of threads](figures/index-3d.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────────────┐
 │                      3D THREAD ORGANIZATION                              │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
@@ -549,7 +564,8 @@ transposeNaive<<<gridSize, blockSize>>>(d_in, d_out, width, height);
 │  • Position: (6, 3, 5) in volume                                         │
 │                                                                          │
 └──────────────────────────────────────────────────────────────────────────┘
-```
+</code></pre>
+</details>
 
 ### 3D Example: Volume Processing
 
@@ -792,8 +808,11 @@ temporalBlur3D<<<gridSize, blockSize>>>(d_video, d_output,
 
 ### Pattern 1: Checkerboard Access
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
+![Checkerboard (red-black) update pattern](figures/checkerboard.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌─────────────────────────────────────────────────────────────────────────┐
 │                    CHECKERBOARD ACCESS PATTERN                          │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
@@ -836,7 +855,7 @@ __global__ void checkerboardUpdate(float *grid, int width, int height,
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
     
-    if (x < width && y < height) {
+    if (x &lt; width &amp;&amp; y &lt; height) {
         // Determine if this is a red or black cell
         int cellColor = (x + y) % 2;
         
@@ -846,10 +865,10 @@ __global__ void checkerboardUpdate(float *grid, int width, int height,
             
             // Update using neighbors (Jacobi/Gauss-Seidel iteration)
             float sum = 0.0f;
-            if (x > 0)           sum += grid[idx - 1];
-            if (x < width - 1)   sum += grid[idx + 1];
-            if (y > 0)           sum += grid[idx - width];
-            if (y < height - 1)  sum += grid[idx + width];
+            if (x &gt; 0)           sum += grid[idx - 1];
+            if (x &lt; width - 1)   sum += grid[idx + 1];
+            if (y &gt; 0)           sum += grid[idx - width];
+            if (y &lt; height - 1)  sum += grid[idx + width];
             
             grid[idx] = sum * 0.25f;
         }
@@ -857,15 +876,19 @@ __global__ void checkerboardUpdate(float *grid, int width, int height,
 }
 
 // Launch twice per iteration
-checkerboardUpdate<<<grid, block>>>(d_grid, width, height, 0);  // Red
+checkerboardUpdate&lt;&lt;&lt;grid, block&gt;&gt;&gt;(d_grid, width, height, 0);  // Red
 cudaDeviceSynchronize();
-checkerboardUpdate<<<grid, block>>>(d_grid, width, height, 1);  // Black
-```
+checkerboardUpdate&lt;&lt;&lt;grid, block&gt;&gt;&gt;(d_grid, width, height, 1);  // Black
+</code></pre>
+</details>
 
 ### Pattern 2: Tiled Processing with Halo
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
+![Tiled processing loads a halo of neighbour cells into shared memory](figures/halo.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────────────┐
 │                  TILED PROCESSING WITH HALO REGIONS                      │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
@@ -938,7 +961,7 @@ __global__ void convolve2DHalo(float *input, float *output,
     int s_row = threadIdx.y;
     
     // Load data with halo into shared memory
-    if (col >= 0 && col < width && row >= 0 && row < height) {
+    if (col &gt;= 0 &amp;&amp; col &lt; width &amp;&amp; row &gt;= 0 &amp;&amp; row &lt; height) {
         shared[s_row][s_col] = input[row * width + col];
     } else {
         shared[s_row][s_col] = 0.0f;  // Padding
@@ -947,18 +970,18 @@ __global__ void convolve2DHalo(float *input, float *output,
     __syncthreads();
     
     // Only compute for core region (not halo)
-    if (threadIdx.x >= RADIUS && threadIdx.x < BLOCK_SIZE - RADIUS &&
-        threadIdx.y >= RADIUS && threadIdx.y < BLOCK_SIZE - RADIUS) {
+    if (threadIdx.x &gt;= RADIUS &amp;&amp; threadIdx.x &lt; BLOCK_SIZE - RADIUS &amp;&amp;
+        threadIdx.y &gt;= RADIUS &amp;&amp; threadIdx.y &lt; BLOCK_SIZE - RADIUS) {
         
         col = blockIdx.x * TILE_SIZE + threadIdx.x - RADIUS;
         row = blockIdx.y * TILE_SIZE + threadIdx.y - RADIUS;
         
-        if (col < width && row < height) {
+        if (col &lt; width &amp;&amp; row &lt; height) {
             float sum = 0.0f;
             
             // 3×3 convolution from shared memory
-            for (int dy = -RADIUS; dy <= RADIUS; dy++) {
-                for (int dx = -RADIUS; dx <= RADIUS; dx++) {
+            for (int dy = -RADIUS; dy &lt;= RADIUS; dy++) {
+                for (int dx = -RADIUS; dx &lt;= RADIUS; dx++) {
                     sum += shared[s_row + dy][s_col + dx];
                 }
             }
@@ -973,8 +996,8 @@ dim3 blockSize(BLOCK_SIZE, BLOCK_SIZE);
 dim3 gridSize((width + TILE_SIZE - 1) / TILE_SIZE,
               (height + TILE_SIZE - 1) / TILE_SIZE);
 
-convolve2DHalo<<<gridSize, blockSize>>>(d_input, d_output, width, height);
-```
+convolve2DHalo&lt;&lt;&lt;gridSize, blockSize&gt;&gt;&gt;(d_input, d_output, width, height);</code></pre>
+</details>
 
 ---
 
@@ -1011,8 +1034,11 @@ convolve2DHalo<<<gridSize, blockSize>>>(d_input, d_output, width, height);
 
 ### Pitfall 2: Row-Major vs Column-Major
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
+![Row-major layout: a 2D index linearizes to row*width+col](figures/row-major.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────────────┐
 │                  ROW-MAJOR vs COLUMN-MAJOR CONFUSION                     │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
@@ -1052,8 +1078,8 @@ convolve2DHalo<<<gridSize, blockSize>>>(d_input, d_output, width, height);
 │  WRONG (will access wrong elements):                                     │
 │  int idx = col * height + row;  // Column-major (FORTRAN style)          │
 │                                                                          │
-└──────────────────────────────────────────────────────────────────────────┘
-```
+└──────────────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### Pitfall 3: X/Y Axis Confusion
 
@@ -1103,8 +1129,11 @@ convolve2DHalo<<<gridSize, blockSize>>>(d_input, d_output, width, height);
 
 ### Coalesced Memory Access
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
+![Coalesced access where consecutive threads read consecutive addresses in one transaction, versus strided access with gaps and many transactions](figures/coalesced.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────────────┐
 │                   MEMORY COALESCING IN 2D/3D                             │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
@@ -1142,8 +1171,8 @@ convolve2DHalo<<<gridSize, blockSize>>>(d_input, d_output, width, height);
 │  • Use shared memory for column-wise access                              │
 │  • Transpose data if column-wise processing is unavoidable               │
 │                                                                          │
-└──────────────────────────────────────────────────────────────────────────┘
-```
+└──────────────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ---
 

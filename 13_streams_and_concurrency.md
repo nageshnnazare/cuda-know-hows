@@ -16,13 +16,16 @@ By default everything runs in the **default stream**, serialized: copy inputs up
 run the kernel, copy results down — one after another. During each copy the
 compute units sit idle; during compute the copy engines sit idle.
 
-```
-   SERIAL (default stream), one big batch:
+![Serial copy-compute-copy underuses the GPU, while splitting the work across streams overlaps copies with compute](figures/streams-overlap.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   SERIAL (default stream), one big batch:
      timeline ─▶  [==== H2D copy ====][==== kernel ====][==== D2H copy ====]
                    copy engine busy    SMs busy          copy engine busy
                    SMs IDLE            copy engines IDLE  SMs IDLE
-   The GPU is only ~1/3 utilized. PCIe (~16-32 GB/s) is slow vs VRAM (TB/s).
-```
+   The GPU is only ~1/3 utilized. PCIe (~16-32 GB/s) is slow vs VRAM (TB/s).</code></pre>
+</details>
 
 The fix: split the work into chunks and run them in **streams** so the copy of
 one chunk overlaps the compute of another.
@@ -35,15 +38,19 @@ A **stream** is an ordered queue of GPU operations. Operations *within* a stream
 run in order; operations in *different* streams may run **concurrently** (if the
 hardware has the resources: separate copy engines + SMs).
 
-```
-   Stream = an in-order queue. Different streams = independent queues.
+![A stream is an in-order queue; streams run independently](figures/stream-queue.svg)
 
-   default stream:  op1 -> op2 -> op3            (serialized)
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   Stream = an in-order queue. Different streams = independent queues.
 
-   stream A:  H2D(a) -> kernel(a) -> D2H(a)  ┐
-   stream B:  H2D(b) -> kernel(b) -> D2H(b)  ├─ these can OVERLAP each other
-   stream C:  H2D(c) -> kernel(c) -> D2H(c)  ┘   (copy of one, compute of another)
-```
+   default stream:  op1 -&gt; op2 -&gt; op3            (serialized)
+
+   stream A:  H2D(a) -&gt; kernel(a) -&gt; D2H(a)  ┐
+   stream B:  H2D(b) -&gt; kernel(b) -&gt; D2H(b)  ├─ these can OVERLAP each other
+   stream C:  H2D(c) -&gt; kernel(c) -&gt; D2H(c)  ┘   (copy of one, compute of another)
+</code></pre>
+</details>
 
 ```cpp
 cudaStream_t s;

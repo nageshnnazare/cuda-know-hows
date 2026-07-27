@@ -95,8 +95,11 @@ Atomic operations are **hardware-accelerated, indivisible** operations that comp
 
 ### The Race Condition Problem
 
-```
-Without Atomics (WRONG):
+![A race condition without atomics: two threads read the same counter value and one increment is lost](figures/race-condition.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>Without Atomics (WRONG):
 ────────────────────────
 
 Time  Thread 0          Thread 1          Counter Value
@@ -106,8 +109,8 @@ Time  Thread 0          Thread 1          Counter Value
   2   Add 1 → 6                           5
   3                     Add 1 → 6         5
   4   Write 6                             6  ← Lost update!
-  5                     Write 6           6  ← Should be 7!
-```
+  5                     Write 6           6  ← Should be 7!</code></pre>
+</details>
 
 ```
 With Atomics (CORRECT):
@@ -362,8 +365,11 @@ __global__ void criticalSectionExample(int *data, int *lock) {
 
 ### The Warp Divergence Problem
 
-```
-╔═══════════════════════════════════════════════════════════════════╗
+![A lock serializes a whole warp: one thread works while 31 spin](figures/atomic-contention.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>╔═══════════════════════════════════════════════════════════════════╗
 ║                    THE WARP DIVERGENCE DISASTER                   ║
 ╠═══════════════════════════════════════════════════════════════════╣
 ║                                                                   ║
@@ -384,8 +390,8 @@ __global__ void criticalSectionExample(int *data, int *lock) {
 ║                                                                   ║
 ║  Wasted GPU Cycles: 96.875%                                       ║
 ║                                                                   ║
-╚═══════════════════════════════════════════════════════════════════╝
-```
+╚═══════════════════════════════════════════════════════════════════╝</code></pre>
+</details>
 
 ### Timeline Visualization
 
@@ -905,8 +911,11 @@ __shfl_xor_sync(mask, var, laneMask); // Get var from (lane ^ laneMask)
 
 **Visual Example: `__shfl_down_sync`**
 
-```
-Initial State (each lane has its ID):
+![Warp-shuffle reduction: shfl_down_sync halves the offset each step until lane 0 holds the warp sum](figures/warp-shuffle.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>Initial State (each lane has its ID):
 Lane:  0   1   2   3   4   5   6   7  ... 31
 Value: 0   1   2   3   4   5   6   7  ... 31
 
@@ -916,8 +925,8 @@ Value: 1   2   3   4   5   6   7   8  ... 31  (each got value from lane+1)
 
 After: value = __shfl_down_sync(0xFFFFFFFF, value, 2):
 Lane:  0   1   2   3   4   5   6   7  ... 31
-Value: 2   3   4   5   6   7   8   9  ... 31  (each got value from lane+2)
-```
+Value: 2   3   4   5   6   7   8   9  ... 31  (each got value from lane+2)</code></pre>
+</details>
 
 #### **3. Warp Vote Functions**
 
@@ -1059,8 +1068,11 @@ No shared memory needed → More cache available
 
 The `__syncthreads()` function creates a **barrier** where all threads in a block must arrive before any can proceed.
 
-```
-╔════════════════════════════════════════════════════════════════╗
+![__syncthreads() is a block-wide barrier separating writes from reads](figures/syncthreads.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>╔════════════════════════════════════════════════════════════════╗
 ║                    __syncthreads() BARRIER                     ║
 ╠════════════════════════════════════════════════════════════════╣
 ║                                                                ║
@@ -1077,8 +1089,8 @@ The `__syncthreads()` function creates a **barrier** where all threads in a bloc
 ║     ║ Read       ║ Read       ║ Read       ║ Read       ║      ║
 ║     ║            ║            ║            ║            ║      ║
 ║                                                                ║
-╚════════════════════════════════════════════════════════════════╝
-```
+╚════════════════════════════════════════════════════════════════╝</code></pre>
+</details>
 
 ### Use Case: Shared Memory Coordination
 
@@ -1642,8 +1654,11 @@ Scalability:
 
 ### Decision Tree
 
-```
-Need to synchronize?
+![Which synchronization primitive to use](figures/atomic-decision.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>Need to synchronize?
     │
     ├─ Within warp (32 threads)?
     │  └─ Use warp shuffles (__shfl_sync) ✓
@@ -1665,12 +1680,16 @@ Need to synchronize?
     └─ Really need a lock?
        └─ Are you ABSOLUTELY sure?
           └─ Okay, but expect poor performance ⚠️
-```
+</code></pre>
+</details>
 
 ### Optimization Hierarchy
 
-```
-Level 1: Algorithm Design (MOST IMPORTANT)
+![Atomics optimization hierarchy: work top-down](figures/optimization-hierarchy.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>Level 1: Algorithm Design (MOST IMPORTANT)
 ─────────────────────────────────────────
 ✓ Design lock-free algorithms from the start
 ✓ Use embarrassingly parallel patterns when possible
@@ -1679,9 +1698,9 @@ Level 1: Algorithm Design (MOST IMPORTANT)
 
 Level 2: Synchronization Primitive Selection
 ─────────────────────────────────────────────
-✓ Warp-level ops > Block-level > Grid-level
-✓ Atomics > Locks
-✓ Shared memory > Global memory
+✓ Warp-level ops &gt; Block-level &gt; Grid-level
+✓ Atomics &gt; Locks
+✓ Shared memory &gt; Global memory
 
 Level 3: Contention Reduction
 ──────────────────────────────
@@ -1694,7 +1713,8 @@ Level 4: Low-Level Optimization
 ✓ Minimize atomic scope (shared vs global)
 ✓ Use appropriate data types
 ✓ Consider backoff strategies
-```
+</code></pre>
+</details>
 
 ### Checklist Before Using Locks
 

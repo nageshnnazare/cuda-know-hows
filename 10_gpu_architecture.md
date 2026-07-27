@@ -30,8 +30,11 @@ This document provides an in-depth exploration of NVIDIA GPU architecture at the
 
 ### Complete GPU Chip Layout
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
+![GPU chip layout: streaming multiprocessors surround a shared L2 cache fed by off-chip HBM](figures/gpu-chip.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────────────────┐
 │                         NVIDIA GPU DIE (Example: Ampere GA102)               │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
@@ -78,13 +81,16 @@ This document provides an in-depth exploration of NVIDIA GPU architecture at the
 │  • TPC = Texture Processing Cluster                                          │
 │  • SM  = Streaming Multiprocessor                                            │
 │  • MEM CTRL = Memory Controller                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
-```
+└──────────────────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### Hierarchical Organization
 
-```
-GPU Die
+![GPU hardware hierarchy: die to processing block](figures/gpu-hierarchy.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>GPU Die
   │
   ├─ Gigathread Engine (Global Scheduler)
   │
@@ -109,7 +115,8 @@ GPU Die
   ├─ Memory Controllers
   │
   └─ Memory Interface (GDDR6/HBM)
-```
+</code></pre>
+</details>
 
 ---
 
@@ -117,13 +124,16 @@ GPU Die
 
 ### SM Block Diagram (Ampere Architecture)
 
-```
-┌───────────────────────────────────────────────────────────────────────────┐
+![Inside an SM: warp schedulers feed processing blocks of FP32, INT32, and tensor cores backed by a shared register file and L1/shared memory](figures/sm-block.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌───────────────────────────────────────────────────────────────────────────┐
 │              STREAMING MULTIPROCESSOR (SM) - Ampere GA10x                 │
 ├───────────────────────────────────────────────────────────────────────────┤
 │                                                                           │
 │  ┌─────────────────────────────────────────────────────────────────┐      │ 
-│  │                   WARP SCHEDULER & DISPATCH                     │      │
+│  │                   WARP SCHEDULER &amp; DISPATCH                     │      │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │      │
 │  │  │  Scheduler 0 │  │  Scheduler 1 │  │  Scheduler 2 │           │      │
 │  │  │  (Warp 0-15) │  │ (Warp 16-31) │  │ (Warp 32-47) │           │      │
@@ -202,8 +212,8 @@ GPU Die
 │  • 1,536 Threads (max)                                                    │
 │  • 256 KB Register File                                                   │
 │  • 128 KB Shared Memory/L1                                                │
-└───────────────────────────────────────────────────────────────────────────┘
-```
+└───────────────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### Processing Block Internal Structure
 
@@ -300,8 +310,11 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 
 ### FP32 CUDA Core Pipeline
 
-```
-┌──────────────────────────────────────────────────────────────────┐
+![The five pipeline stages of an FP32 CUDA core](figures/core-pipeline.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────┐
 │               FP32 CUDA CORE PIPELINE STAGES                     │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                  │
@@ -337,7 +350,7 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 │  │             ↓                                          │      │
 │  │  ┌─────────────────────┐                               │      │
 │  │  │  Exponent Add       │                               │      │
-│  │  │  & Alignment        │                               │      │
+│  │  │  &amp; Alignment        │                               │      │
 │  │  └──────────┬──────────┘                               │      │
 │  │             ↓                                          │      │
 │  │  ┌─────────────────────┐                               │      │
@@ -346,7 +359,7 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 │  │  └──────────┬──────────┘                               │      │
 │  │             ↓                                          │      │
 │  │  ┌─────────────────────┐                               │      │
-│  │  │  Normalize & Round  │                               │      │
+│  │  │  Normalize &amp; Round  │                               │      │
 │  │  └──────────┬──────────┘                               │      │
 │  │             ↓                                          │      │
 │  │         Result (32-bit)                                │      │
@@ -367,13 +380,16 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 │  • Throughput: 2 ops/cycle (FMA = multiply + add)                │
 │  • Full IEEE 754-2008 compliance                                 │
 │  • Supports: FP32, FP16 (2× rate with Tensor cores)              │
-└──────────────────────────────────────────────────────────────────┘
-```
+└──────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### Tensor Core Operation
 
-```
-┌──────────────────────────────────────────────────────────────────┐
+![A Tensor Core computes one fused 4x4 matrix multiply-accumulate D=A*B+C](figures/tensor-core.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────┐
 │              TENSOR CORE MATRIX OPERATION                        │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                  │
@@ -434,8 +450,8 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 │  • Per SM (4 TCs): 1024 FP16 ops/clock                           │
 │  • 16× faster than FP32 cores for same operation                 │
 │  • Supports: FP16, BF16, TF32, INT8, INT4, FP64 (sparse)         │
-└──────────────────────────────────────────────────────────────────┘
-```
+└──────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ---
 
@@ -558,8 +574,11 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 
 ### Shared Memory Bank Structure
 
-```
-┌──────────────────────────────────────────────────────────────────┐
+![Shared memory has 32 banks: no-conflict, 2-way conflict and broadcast access](figures/smem-banks.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────┐
 │            SHARED MEMORY BANKING ARCHITECTURE                    │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                  │
@@ -570,8 +589,8 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 │  │  Byte Address: [.... address bits ....][bank][offset]  │      │
 │  │                                         └─5b─┘└─2b──┘  │      │
 │  │                                                        │      │
-│  │  Bank ID = (address >> 2) & 0x1F  (bits 6:2)           │      │
-│  │  Offset  = address & 0x3            (bits 1:0)         │      │
+│  │  Bank ID = (address &gt;&gt; 2) &amp; 0x1F  (bits 6:2)           │      │
+│  │  Offset  = address &amp; 0x3            (bits 1:0)         │      │
 │  └────────────────────────────────────────────────────────┘      │
 │                                                                  │
 │  Physical Layout (128 KB total):                                 │
@@ -619,14 +638,14 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 │  PADDING TO AVOID CONFLICTS:                                     │
 │  ┌────────────────────────────────────────────────────────┐      │
 │  │  Without padding: float array[32][32]                  │      │
-│  │  └─> array[tid][0] all map to Bank 0 (32-way conflict) │      │
+│  │  └─&gt; array[tid][0] all map to Bank 0 (32-way conflict) │      │
 │  │                                                        │      │
 │  │  With padding: float array[32][33]                     │      │
-│  │  └─> array[tid][0] maps to different banks(no conflict)│      │
+│  │  └─&gt; array[tid][0] maps to different banks(no conflict)│      │
 │  └────────────────────────────────────────────────────────┘      │
 │                                                                  │
-└──────────────────────────────────────────────────────────────────┘
-```
+└──────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ---
 
@@ -634,8 +653,11 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 
 ### Warp Scheduler Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
+![A warp scheduler issues one ready warp per cycle to the execution units](figures/warp-scheduler.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────────────────┐
 │                    WARP SCHEDULER ARCHITECTURE (Per SM)                      │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
@@ -673,12 +695,12 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 │  │  └──────────────────────────────────────────────────────────┘       │     │
 │  │                              ↓                                      │     │
 │  │  ┌──────────────────────────────────────────────────────────┐       │     │
-│  │  │           INSTRUCTION FETCH & DECODE                     │       │     │
+│  │  │           INSTRUCTION FETCH &amp; DECODE                     │       │     │
 │  │  │  ┌────────────────────────────────────────────────┐      │       │     │
 │  │  │  │  • Fetch from instruction cache                │      │       │     │
 │  │  │  │  • Decode instruction                          │      │       │     │
 │  │  │  │  • Determine execution unit needed             │      │       │     │
-│  │  │  │  • Extract operands & registers                │      │       │     │
+│  │  │  │  • Extract operands &amp; registers                │      │       │     │
 │  │  │  └────────────────────────────────────────────────┘      │       │     │
 │  │  └──────────────────────────────────────────────────────────┘       │     │
 │  │                              ↓                                      │     │
@@ -741,13 +763,16 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 │  │                                                                     │     │
 │  └─────────────────────────────────────────────────────────────────────┘     │
 │                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
-```
+└──────────────────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ### Branch Divergence Handling
 
-```
-┌──────────────────────────────────────────────────────────────────┐
+![Warp divergence: the two sides of a branch run serially with inactive lanes masked, then reconverge](figures/warp-divergence.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────┐
 │                BRANCH DIVERGENCE HANDLING                        │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                  │
@@ -836,8 +861,8 @@ Each SM contains 4 processing blocks. Here's the detailed structure of one block
 │  │     • Early exit when possible                         │      │
 │  └────────────────────────────────────────────────────────┘      │
 │                                                                  │
-└──────────────────────────────────────────────────────────────────┘
-```
+└──────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 ---
 
@@ -2057,8 +2082,11 @@ NVLink/PCIe, and the generational evolution through Blackwell.*
 
 ### Latency Numbers
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
+![The memory latency ladder (approximate)](figures/latency-ladder.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>┌──────────────────────────────────────────────────────────────────────┐
 │               LATENCY CHARACTERISTICS (Approximate)                  │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                      │
@@ -2115,7 +2143,8 @@ NVLink/PCIe, and the generational evolution through Blackwell.*
 │  └────────────────────────────────────────────────────────────┘      │
 │                                                                      │
 └──────────────────────────────────────────────────────────────────────┘
-```
+</code></pre>
+</details>
 
 ---
 

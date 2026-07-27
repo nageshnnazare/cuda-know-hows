@@ -260,20 +260,23 @@ printf("kernel: %.3f ms\n", ms);
 
 ## 7. The complete flow, annotated
 
-```
-   ┌────────────────────────────────────────────────────────────────────────┐
+![Explicit-memory vs unified-memory versions of the same kernel launch](figures/kernel-flow.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   ┌────────────────────────────────────────────────────────────────────────┐
    │  EXPLICIT MEMORY VERSION                                               │
    │                                                                        │
-   │  host init ─▶ cudaMalloc ─▶ H2D copy ─▶ LAUNCH <<<>>> ─▶ D2H copy ─▶   │
+   │  host init ─▶ cudaMalloc ─▶ H2D copy ─▶ LAUNCH &lt;&lt;&lt;&gt;&gt;&gt; ─▶ D2H copy ─▶   │
    │  free ─▶ use results                                                   │
    │                     ▲ async! check cudaGetLastError() + sync           │
    │                                                                        │
    │  UNIFIED MEMORY VERSION                                                │
    │                                                                        │
-   │  cudaMallocManaged ─▶ host init ─▶ LAUNCH <<<>>> ─▶ cudaDeviceSync ─▶  │
+   │  cudaMallocManaged ─▶ host init ─▶ LAUNCH &lt;&lt;&lt;&gt;&gt;&gt; ─▶ cudaDeviceSync ─▶  │
    │  read on host (driver migrated) ─▶ cudaFree                            │
-   └────────────────────────────────────────────────────────────────────────┘
-```
+   └────────────────────────────────────────────────────────────────────────┘</code></pre>
+</details>
 
 Build and run the full worked example:
 

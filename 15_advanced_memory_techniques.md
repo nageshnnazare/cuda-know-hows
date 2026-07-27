@@ -19,15 +19,18 @@ Modern hardware can copy global→shared **asynchronously**, so a warp issues th
 next tile's copy and computes on the current tile while it flies in — software
 pipelining / double buffering.
 
-```
-   SYNCHRONOUS tiling (each step stalls on the load):
+![Async double-buffering overlaps copying the next tile with computing the current one](figures/async-copy.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   SYNCHRONOUS tiling (each step stalls on the load):
      [load tile0 ■■stall■■][compute0][load tile1 ■■stall■■][compute1] ...
 
    ASYNC / DOUBLE-BUFFERED (copy overlaps compute):
      copy:    [cp tile0][cp tile1][cp tile2]
      compute:          [compute0 ][compute1 ][compute2]
-                        └ compute tile0 WHILE tile1 copies in -> no stall
-```
+                        └ compute tile0 WHILE tile1 copies in -&gt; no stall</code></pre>
+</details>
 
 ---
 
@@ -101,18 +104,22 @@ copies between global and shared memory. A single thread issues a descriptor and
 the hardware handles all the address generation and bounds — freeing CUDA cores
 entirely from copy bookkeeping.
 
-```
-   WITHOUT TMA: every thread computes addresses, issues loads, handles edges.
+![The Tensor Memory Accelerator (TMA)](figures/tma.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>   WITHOUT TMA: every thread computes addresses, issues loads, handles edges.
    WITH TMA:    one thread kicks off a whole tile copy via a descriptor:
 
-     [tensor map descriptor] --▶ TMA engine copies a 2D/3D tile global<->shared
+     [tensor map descriptor] --▶ TMA engine copies a 2D/3D tile global&lt;-&gt;shared
                                  with bounds handling, async, no core involvement
 
    + massively reduces address-compute instructions and register pressure
    + multi-dimensional (tiles of matrices) with built-in boundary handling
    + pairs with async barriers (mbarrier) to signal completion
    Used by cuBLAS/CUTLASS Hopper GEMM and FlashAttention-class kernels.
-```
+</code></pre>
+</details>
 
 You rarely write TMA by hand; you use it via CUTLASS or the CUDA Tile API
 (Ch. 21). Know it exists and why it matters: it's a big reason Hopper/Blackwell

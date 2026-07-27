@@ -91,8 +91,11 @@
 
 ### The Complete Mapping
 
-```
-╔════════════════════════════════════════════════════════════════╗
+![How grids, blocks, warps and threads map onto GPU, SM, scheduler and cores](figures/sw-hw-mapping.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>╔════════════════════════════════════════════════════════════════╗
 ║            SOFTWARE → HARDWARE MAPPING                         ║
 ╠════════════════════════════════════════════════════════════════╣
 ║                                                                ║
@@ -115,13 +118,16 @@
 ║                                                                ║
 ║  Thread ────→ CUDA Core (when scheduled)                       ║
 ║                                                                ║
-╚════════════════════════════════════════════════════════════════╝
-```
+╚════════════════════════════════════════════════════════════════╝</code></pre>
+</details>
 
 ### Execution Timeline
 
-```
-Time →
+![Blocks are distributed across SMs over time](figures/exec-timeline.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>Time →
 ════════════════════════════════════════════════════════════════
 
 SM 0:  [Block 0────]  [Block 2────]  [Block 5────] ...
@@ -136,12 +142,16 @@ Cycle 32-63:  Warp 1 executes (threads 32-63)
 Cycle 64-95:  Warp 2 executes (threads 64-95)
 ...
 (Warps can interleave based on dependencies/memory latency)
-```
+</code></pre>
+</details>
 
 ### Resource Allocation
 
-```
-╔════════════════════════════════════════════════════════════════╗
+![Per-SM resources partition into whole blocks; the scarcest one caps occupancy](figures/sm-resources.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>╔════════════════════════════════════════════════════════════════╗
 ║                  PER-SM RESOURCE LIMITS                        ║
 ║                  (Example: Ampere Architecture)                ║
 ╠════════════════════════════════════════════════════════════════╣
@@ -166,8 +176,8 @@ Cycle 64-95:  Warp 2 executes (threads 64-95)
 ║  • Shared mem limit: 100KB / 16KB = 6 blocks ← BOTTLENECK      ║
 ║  → Only 6 blocks can run simultaneously per SM                 ║
 ║                                                                ║
-╚════════════════════════════════════════════════════════════════╝
-```
+╚════════════════════════════════════════════════════════════════╝</code></pre>
+</details>
 
 ---
 
@@ -441,8 +451,11 @@ int blocksPerSM = maxThreadsPerSM / threadsPerBlock;  // 2048 / 256 = 8
 
 ### Occupancy Limiting Factors
 
-```
-Example Kernel with 256 threads/block:
+![Occupancy is capped by the most constraining resource among thread slots, registers, and shared memory](figures/occupancy.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>Example Kernel with 256 threads/block:
 ═══════════════════════════════════════
 
 Factor 1: Threads
@@ -464,8 +477,8 @@ Per block: 20 KB
 → Max blocks: 100KB / 20KB = 5 blocks ← BOTTLENECK!
 
 RESULT: Only 5 blocks per SM
-        Occupancy = (5 × 256) / 2048 = 62.5%
-```
+        Occupancy = (5 × 256) / 2048 = 62.5%</code></pre>
+</details>
 
 ### Optimizing for Higher Occupancy
 
@@ -829,8 +842,11 @@ If performance poor:
 
 ### Decision Tree
 
-```
-Choose Block Size:
+![A decision tree for choosing block and grid size](figures/blocksize-decision.svg)
+
+<details class="ascii-diagram">
+<summary>ASCII diagram</summary>
+<pre><code>Choose Block Size:
 ==================
 
 Is problem 2D/3D?
@@ -842,8 +858,8 @@ Is problem 2D/3D?
         │
         Do you use shared memory?
         ├─ YES → How much per thread?
-        │        ├─ < 128 bytes → blockSize = 256-512
-        │        └─ > 128 bytes → blockSize = 128-256
+        │        ├─ &lt; 128 bytes → blockSize = 256-512
+        │        └─ &gt; 128 bytes → blockSize = 128-256
         │
         └─ NO → Do you use many registers?
                  ├─ YES → blockSize = 128-256
@@ -853,14 +869,14 @@ Choose Grid Size:
 =================
 
 How large is N?
-├─ Small (< 100K) → gridSize = (N + blockSize - 1) / blockSize
+├─ Small (&lt; 100K) → gridSize = (N + blockSize - 1) / blockSize
 │
 ├─ Medium (100K - 10M) → gridSize = numSMs × 8
 │                        Use grid-stride loop
 │
-└─ Large (> 10M) → gridSize = numSMs × 8-16
-                   Use grid-stride loop
-```
+└─ Large (&gt; 10M) → gridSize = numSMs × 8-16
+                   Use grid-stride loop</code></pre>
+</details>
 
 ---
 
